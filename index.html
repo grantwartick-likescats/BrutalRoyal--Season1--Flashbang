@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Battle Royale - Harvesting & Building</title>
+        .mat-text { color: #d7ccc8; }
+        .poi-text { color: #ffd54f; }
+        #ammo-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #1e1e1e;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        #hotbar {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            overflow-x: auto;
+            max-width: 900px;
+        }
+        .slot {
+            padding: 6px 10px;
+            background: #252525;
+            border: 2px solid #555;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ccc;
+            transition: transform 0.1s;
+            text-align: center;
+            min-width: 95px;
+        }
+        .slot.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+            color: #fff;
+            border-color: #ffeb3b;
+        }
+        .slot-ammo {
+            display: block;
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+        #controls-hint {
+            margin-top: 6px;
+            font-size: 11px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div>Elims: <span id="score">0</span></div>
+        <div class="shield-text">Shield: <span id="shield">100</span></div>
+        <div class="hp-text">HP: <span id="hp">100</span></div>
+        <div class="mat-text">Wood: <span id="wood">0</span>/500</div>
+        <div class="poi-text">Location: <span id="poi-name">Battle Bus</span></div>
+    </div>
+    <div id="ammo-bar">
+        <span style="color:#ffd54f;">Med: <span id="ammo-medium">0</span></span>
+        <span style="color:#ff7043;">Shells: <span id="ammo-shells">0</span></span>
+        <span style="color:#4dd0e1;">Light: <span id="ammo-light">0</span></span>
+        <span style="color:#ce93d8;">Heavy: <span id="ammo-heavy">0</span></span>
+        <span style="color:#ff5252;">Rockets: <span id="ammo-rockets">0</span></span>
+    </div>
+    <canvas id="gameCanvas" width="900" height="480"></canvas>
+    <div id="hotbar">
+        <div class="slot active" id="slot-0">[1] Empty</div>
+        <div class="slot" id="slot-1">[2] Empty</div>
+        <div class="slot" id="slot-2">[3] Empty</div>
+        <div class="slot" id="slot-3">[4] Empty</div>
+        <div class="slot" id="slot-4">[5] Empty</div>
+        <div class="slot" id="slot-5">[6] Empty</div>
+        <div class="slot" id="slot-6">[7] Empty</div>
+        <div class="slot" id="slot-7">[8] Empty</div>
+    </div>
+    <div id="controls-hint">Space: Jump/Exit Bus | Click: Shoot / Harvest Buildings | Q: Place Wood Wall (Costs 10 Wood) | E: Loot</div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreEl = document.getElementById("score");
+        const shieldEl = document.getElementById("shield");
+        const hpEl = document.getElementById("hp");
+        const woodEl = document.getElementById("wood");
+        const poiEl = document.getElementById("poi-name");
+
+        const WORLD_WIDTH = 2400;
+        const WORLD_HEIGHT = 2400;
+
+        let score = 0;
+        let woodMats = 0;
+        let isGameOver = false;
+        let isMouseDown = false;
+        let lastShotTime = 0;
+        let gameState = 'BUS';
+
+        const bus = { x: 100, y: 1200, targetX: 2300, targetY: 1200, speed: 3.5 };
+        const busPathAngle = Math.atan2(bus.targetY - bus.y, bus.targetX - bus.x);
+        const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+
+        const ammoTypes = {
+            medium: { name: "Medium Ammo", color: "#ffd54f", dropAmount: 30 },
+            shells: { name: "Shotgun Shells", color: "#ff7043", dropAmount: 8 },
+            light:  { name: "Light Ammo", color: "#4dd0e1", dropAmount: 45 },
+            heavy:  { name: "Heavy Ammo", color: "#ce93d8", dropAmount: 6 },
+            rockets:{ name: "Rocket Ammo", color: "#ff5252", dropAmount: 2 }
+        };
+
+        const rarities = [
+            { name: "Common", color: "#b0bec5", mult: 1.0 },
+            { name: "Uncommon", color: "#66bb6a", mult: 1.08 },
+            { name: "Rare", color: "#29b6f6", mult: 1.18 },
+            { name: "Epic", color: "#ab47bc", mult: 1.3 },
+            { name: "Legendary", color: "#ffa726", mult: 1.45 }
+        ];
+
+        const baseWeapons = [
+            { id: 0, name: "Assault Rifle", ammoType: "medium", magSize: 30, reloadTime: 1800, baseDmg: 28, hsMult: 2.0, fireRate: 210, speed: 12, spread: 0.05, pellets: 1, bulletColor: "#ffeb3b", barrelLen: 24, barrelWidth: 6, auto: true, isExplosive: false },
+            { id: 1, name: "Pump Shotgun", ammoType: "shells", magSize: 5, reloadTime: 2400, baseDmg: 18, hsMult: 1.85, fireRate: 880, speed: 10, spread: 0.28, pellets: 7, bulletColor: "#ff7043", barrelLen: 20, barrelWidth: 9, auto: false, isExplosive: false },
+            { id: 2, name: "Tactical SMG", ammoType: "light", magSize: 35, reloadTime: 1500, baseDmg: 16, hsMult: 1.75, fireRate: 95, speed: 11, spread: 0.12, pellets: 1, bulletColor: "#26c6da", barrelLen: 18, barrelWidth: 5, auto: true, isExplosive: false },
+            { id: 3, name: "Bolt Sniper", ammoType: "heavy", magSize: 1, reloadTime: 2100, baseDmg: 95, hsMult: 2.5, fireRate: 1250, speed: 19, spread: 0.0, pellets: 1, bulletColor: "#e040fb", barrelLen: 32, barrelWidth: 5, auto: false, isExplosive: false },
+            { id: 4, name: "Heavy Shotgun", ammoType: "shells", magSize: 4, reloadTime: 2000, baseDmg: 74, hsMult: 1.75, fireRate: 750, speed: 13, spread: 0.08, pellets: 1, bulletColor: "#ff9e80", barrelLen: 26, barrelWidth: 7, auto: false, isExplosive: false },
+            { id: 5, name: "Suppress Pistol", ammoType: "light", magSize: 16, reloadTime: 1200, baseDmg: 25, hsMult: 2.0, fireRate: 170, speed: 13, spread: 0.06, pellets: 1, bulletColor: "#80deea", barrelLen: 16, barrelWidth: 4, auto: false, isExplosive: false },
+            { id: 6, name: "Heavy AR", ammoType: "medium", magSize: 25, reloadTime: 2100, baseDmg: 38, hsMult: 2.1, fireRate: 260, speed: 11, spread: 0.03, pellets: 1, bulletColor: "#ffe082", barrelLen: 28, barrelWidth: 6, auto: true, isExplosive: false },
+            { id: 7, name: "Rocket Launcher", ammoType: "rockets", magSize: 1, reloadTime: 3000, baseDmg: 120, hsMult: 1.0, fireRate: 1500, speed: 7, spread: 0.0, pellets: 1, bulletColor: "#ff5252", barrelLen: 34, barrelWidth: 10, auto: false, isExplosive: true }
+        ];
+
+        function createWeapon(baseIndex, rarityIndex) {
+            const base = baseWeapons[baseIndex];
+            const rar = rarities[rarityIndex];
+            return {
+                ...base,
+                rarityIndex: rarityIndex,
+                rarityName: rar.name,
+                rarityColor: rar.color,
+                damage: Math.round(base.baseDmg * rar.mult),
+                currentMag: base.magSize
+            };
+        }
+
+        const player = {
+            x: 100, y: 1200, radius: 16, headRadius: 7, color: "#00d2ff", speed: 4.2, angle: 0,
+            hp: 100, shield: 100, maxTotalHp: 200, isJumping: false, jumpTimer: 0,
+            ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 },
+            inventory: [null, null, null, null, null, null, null, null],
+            reloading: false, reloadStartTime: 0, reloadDuration: 0
+        };
+        let currentWeaponIndex = 0;
+
+        const pois = [
+            { name: "Realities Reign", x: 220, y: 220, w: 680, h: 680, groundColor: "#4a2c6b", borderColor: "#9c27b0", buildings: [
+                { x: 340, y: 340, w: 140, h: 40, color: "#7b1fa2", hp: 150, maxHp: 150 },
+                { x: 640, y: 340, w: 140, h: 40, color: "#7b1fa2", hp: 150, maxHp: 150 },
+                { x: 340, y: 740, w: 140, h: 40, color: "#7b1fa2", hp: 150, maxHp: 150 },
+                { x: 640, y: 740, w: 140, h: 40, color: "#7b1fa2", hp: 150, maxHp: 150 },
+                { x: 510, y: 510, w: 100, h: 100, color: "#ce93d8", hp: 300, maxHp: 300 }
+            ]},
+            { name: "Cursed Cavern", x: 1500, y: 220, w: 680, h: 680, groundColor: "#263238", borderColor: "#00bfa5", buildings: [
+                { x: 1600, y: 320, w: 180, h: 50, color: "#37474f", hp: 150, maxHp: 150 },
+                { x: 1920, y: 320, w: 160, h: 50, color: "#37474f", hp: 150, maxHp: 150 },
+                { x: 1600, y: 720, w: 160, h: 50, color: "#37474f", hp: 150, maxHp: 150 },
+                { x: 1900, y: 720, w: 180, h: 50, color: "#37474f", hp: 150, maxHp: 150 },
+                { x: 1810, y: 500, w: 60, h: 120, color: "#00897b", hp: 300, maxHp: 300 }
+            ]},
+            { name: "Stone Sanctum", x: 220, y: 1500, w: 680, h: 680, groundColor: "#6d6552", borderColor: "#d7ccc8", buildings: [
+                { x: 350, y: 1620, w: 160, h: 45, color: "#8d6e63", hp: 150, maxHp: 150 },
+                { x: 620, y: 1620, w: 160, h: 45, color: "#8d6e63", hp: 150, maxHp: 150 },
+                { x: 350, y: 2020, w: 160, h: 45, color: "#8d6e63", hp: 150, maxHp: 150 },
+                { x: 620, y: 2020, w: 160, h: 45, color: "#8d6e63", hp: 150, maxHp: 150 },
+                { x: 480, y: 1800, w: 160, h: 80, color: "#a1887f", hp: 300, maxHp: 300 }
+            ]},
+            { name: "Busy Bay", x: 1500, y: 1500, w: 680, h: 680, groundColor: "#d7b878", borderColor: "#0288d1", buildings: [
+                { x: 1880, y: 1500, w: 300, h: 680, color: "#0277bd", isWater: true },
+                { x: 1820, y: 1630, w: 160, h: 35, color: "#8d6e63", hp: 100, maxHp: 100 },
+                { x: 1820, y: 1980, w: 160, h: 35, color: "#8d6e63", hp: 100, maxHp: 100 },
+                { x: 1580, y: 1600, w: 130, h: 90, color: "#e53935", hp: 200, maxHp: 200 },
+                { x: 1580, y: 1950, w: 130, h: 90, color: "#fdd835", hp: 200, maxHp: 200 }
+            ]}
+        ];
+
+        const walls = [];
+        const playerBuiltWalls = []; // Player placed wood walls
+
+        pois.forEach(poi => {
+            poi.buildings.forEach(b => { if (!b.isWater) walls.push(b); });
+        });
+
+        function circleRectCollide(cx, cy, cr, rect) {
+            const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+            const closestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+            return Math.hypot(cx - closestX, cy - closestY) < cr;
+        }
+
+        const chests = [
+            { x: 410, y: 410, opened: false }, { x: 710, y: 410, opened: false }, { x: 560, y: 640, opened: false },
+            { x: 1680, y: 400, opened: false }, { x: 2000, y: 400, opened: false }, { x: 1840, y: 650, opened: false },
+            { x: 430, y: 1700, opened: false }, { x: 700, y: 1700, opened: false }, { x: 560, y: 1910, opened: false },
+            { x: 1645, y: 1720, opened: false }, { x: 1950, y: 1647, opened: false }, { x: 1950, y: 1997, opened: false },
+            { x: 1120, y: 1120, opened: false }, { x: 1280, y: 1280, opened: false }
+        ];
+
+        const groundLoot = [];
+        const groundAmmo = [];
+
+        function spawnAmmoBox(x, y, forcedType = null) {
+            const keys = Object.keys(ammoTypes);
+            const type = forcedType || keys[Math.floor(Math.random() * keys.length)];
+            const info = ammoTypes[type];
+            groundAmmo.push({ x: x, y: y, type: type, amount: info.dropAmount, color: info.color, label: info.name });
+        }
+
+        function spawnInitialLoot() {
+            // Scatter 55 weapons across the map (Player starts empty!)
+            let placedGuns = 0, attempts = 0;
+            while (placedGuns < 55 && attempts < 600) {
+                attempts++;
+                const gx = Math.random() * (WORLD_WIDTH - 240) + 120;
+                const gy = Math.random() * (WORLD_HEIGHT - 240) + 120;
+                let inWall = false;
+                for (const w of walls) {
+                    if (circleRectCollide(gx, gy, 22, w)) { inWall = true; break; }
+                }
+                if (inWall) continue;
+
+                const weaponType = Math.floor(Math.random() * baseWeapons.length);
+                const rarityIndex = Math.random() < 0.6 ? 0 : 1;
+                groundLoot.push({ x: gx, y: gy, weapon: createWeapon(weaponType, rarityIndex) });
+                placedGuns++;
+            }
+
+            let placedAmmo = 0;
+            attempts = 0;
+            while (placedAmmo < 65 && attempts < 700) {
+                attempts++;
+                const ax = Math.random() * (WORLD_WIDTH - 200) + 100;
+                const ay = Math.random() * (WORLD_HEIGHT - 200) + 100;
+                let inWall = false;
+                for (const w of walls) {
+                    if (circleRectCollide(ax, ay, 18, w)) { inWall = true; break; }
+                }
+                if (inWall) continue;
+
+                spawnAmmoBox(ax, ay);
+                placedAmmo++;
+            }
+        }
+        spawnInitialLoot();
+
+        const keys = {};
+        const playerBullets = [];
+        const robotBullets = [];
+        const robots = [];
+        const floatingTexts = [];
+
+        function updateUI() {
+            document.getElementById("ammo-medium").innerText = player.ammo.medium;
+            document.getElementById("ammo-shells").innerText = player.ammo.shells;
+            document.getElementById("ammo-light").innerText = player.ammo.light;
+            document.getElementById("ammo-heavy").innerText = player.ammo.heavy;
+            document.getElementById("ammo-rockets").innerText = player.ammo.rockets;
+            woodEl.innerText = woodMats;
+
+            for (let i = 0; i < 8; i++) {
+                const w = player.inventory[i];
+                const slot = document.getElementById(`slot-${i}`);
+                if (w) {
+                    const reserve = player.ammo[w.ammoType];
+                    slot.innerHTML = `[${i + 1}] ${w.name}<span class="slot-ammo">${w.currentMag}/${w.magSize} (R:${reserve})</span>`;
+                    slot.style.borderColor = w.rarityColor;
+                } else {
+                    slot.innerHTML = `[${i + 1}] Empty<span class="slot-ammo">-</span>`;
+                    slot.style.borderColor = "#444";
+                }
+                slot.classList.toggle("active", i === currentWeaponIndex);
+            }
+        }
+        updateUI();
+
+        function cancelReload() { player.reloading = false; }
+
+        function startReload() {
+            if (isGameOver || player.reloading || gameState === 'BUS') return;
+            const w = player.inventory[currentWeaponIndex];
+            if (!w || w.currentMag >= w.magSize) return;
+            if (player.ammo[w.ammoType] <= 0) {
+                spawnFloatingText(player.x, player.y - 10, `Out of ${ammoTypes[w.ammoType].name}!`, "#ff5252", false);
+                return;
+            }
+            player.reloading = true;
+            player.reloadStartTime = Date.now();
+            player.reloadDuration = w.reloadTime;
+        }
+
+        function finishReload() {
+            const w = player.inventory[currentWeaponIndex];
+            if (!w) { player.reloading = false; return; }
+            const needed = w.magSize - w.currentMag;
+            const available = player.ammo[w.ammoType];
+            const toLoad = Math.min(needed, available);
+            w.currentMag += toLoad;
+            player.ammo[w.ammoType] -= toLoad;
+            player.reloading = false;
+            updateUI();
+        }
+
+        function selectWeapon(index) {
+            if (currentWeaponIndex !== index) {
+                cancelReload();
+                currentWeaponIndex = index;
+                updateUI();
+            }
+        }
+
+        function placeWoodWall() {
+            if (gameState === 'BUS' || isGameOver) return;
+            if (woodMats < 10) {
+                spawnFloatingText(player.x, player.y - 15, "Need 10 Wood to Build!", "#ff5252", false);
+                return;
+            }
+            woodMats -= 10;
+            woodEl.innerText = woodMats;
+
+            // Place wooden wall slightly in front of the player
+            const wallDist = 45;
+            const wx = player.x + Math.cos(player.angle) * wallDist - 30;
+            const wy = player.y + Math.sin(player.angle) * wallDist - 30;
+
+            playerBuiltWalls.push({
+                x: wx, y: wy, w: 60, h: 60, hp: 150, maxHp: 150
+            });
+            spawnFloatingText(player.x, player.y - 15, "Placed Wood Wall", "#d7ccc8", false);
+        }
+
+        function interactNearby() {
+            if (gameState === 'BUS') return;
+
+            for (const chest of chests) {
+                if (!chest.opened && Math.hypot(player.x - chest.x, player.y - chest.y) < 60) {
+                    chest.opened = true;
+                    const roll = Math.random();
+                    const rarityIndex = roll < 0.45 ? 2 : (roll < 0.80 ? 3 : 4);
+                    const weaponType = Math.floor(Math.random() * baseWeapons.length);
+                    const newWeapon = createWeapon(weaponType, rarityIndex);
+
+                    spawnAmmoBox(chest.x - 22, chest.y + 18, newWeapon.ammoType);
+
+                    // Find first empty slot or replace current
+                    let slotIdx = player.inventory.findIndex(slot => slot === null);
+                    if (slotIdx === -1) slotIdx = currentWeaponIndex;
+
+                    const currentInSlot = player.inventory[slotIdx];
+                    if (currentInSlot) {
+                        groundLoot.push({ x: chest.x + 22, y: chest.y + 18, weapon: currentInSlot });
+                    }
+                    cancelReload();
+                    player.inventory[slotIdx] = newWeapon;
+                    currentWeaponIndex = slotIdx;
+                    spawnFloatingText(chest.x, chest.y - 15, `Got ${newWeapon.rarityName} ${newWeapon.name}!`, newWeapon.rarityColor, true);
+
+                    player.shield = Math.min(100, player.shield + 25);
+                    shieldEl.innerText = Math.round(player.shield);
+                    updateUI();
+                    return;
+                }
+            }
+
+            let closestIdx = -1;
+            let closestDist = 55;
+            for (let i = 0; i < groundLoot.length; i++) {
+                const d = Math.hypot(player.x - groundLoot[i].x, player.y - groundLoot[i].y);
+                if (d < closestDist) { closestDist = d; closestIdx = i; }
+            }
+
+            if (closestIdx !== -1) {
+                const item = groundLoot[closestIdx];
+                let slotIdx = player.inventory.findIndex(slot => slot === null);
+                if (slotIdx === -1) slotIdx = currentWeaponIndex;
+
+                const previousWeapon = player.inventory[slotIdx];
+
+                cancelReload();
+                player.inventory[slotIdx] = item.weapon;
+                groundLoot.splice(closestIdx, 1);
+
+                if (previousWeapon) {
+                    groundLoot.push({ x: item.x, y: item.y, weapon: previousWeapon });
+                }
+
+                currentWeaponIndex = slotIdx;
+                updateUI();
+                spawnFloatingText(player.x, player.y - 15, `Picked up ${item.weapon.rarityName} ${item.weapon.name}`, item.weapon.rarityColor, false);
+            }
+        }
+
+        window.addEventListener("keydown", (e) => {
+            const key = e.key.toLowerCase();
+            keys[key] = true;
+            if (key >= '1' && key <= '8') selectWeapon(parseInt(key) - 1);
+            if (key === "e") interactNearby();
+            if (key === "r") startReload();
+            if (key === "q") placeWoodWall();
+
+            if (e.code === "Space") {
+                if (gameState === 'BUS') {
+                    gameState = 'PLAYING';
+                    spawnFloatingText(player.x, player.y - 20, "Jumped from Battle Bus!", "#ffd54f", true);
+                } else if (!player.isJumping && !isGameOver) {
+                    player.isJumping = true;
+                    player.jumpTimer = 0;
+                }
+            }
+        });
+        window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
+
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener("mousedown", () => {
+            if (gameState === 'BUS') return;
+            isMouseDown = true;
+            tryShootOrHarvest();
+        });
+        window.addEventListener("mouseup", () => isMouseDown = false);
+
+        function tryShootOrHarvest() {
+            if (isGameOver || player.reloading || gameState === 'BUS') return;
+            const weapon = player.inventory[currentWeaponIndex];
+           
+            // If player has no weapon in hand, harvesting buildings with clicks!
+            if (!weapon) {
+                const now = Date.now();
+                if (now - lastShotTime < 300) return;
+                lastShotTime = now;
+
+                // Check if hitting any POI building to harvest wood
+                for (let i = walls.length - 1; i >= 0; i--) {
+                    const b = walls[i];
+                    if (circleRectCollide(player.x + Math.cos(player.angle)*30, player.y + Math.sin(player.angle)*30, 18, b)) {
+                        b.hp -= 25;
+                        woodMats = Math.min(500, woodMats + 15);
+                        woodEl.innerText = woodMats;
+                        spawnFloatingText(b.x + b.w/2, b.y + b.h/2, "+15 Wood", "#d7ccc8", false);
+
+                        if (b.hp <= 0) {
+                            walls.splice(i, 1);
+                        }
+                        break;
+                    }
+                }
+                return;
+            }
+
+            if (weapon.currentMag <= 0) {
+                startReload();
+                return;
+            }
+
+            const now = Date.now();
+            if (now - lastShotTime < weapon.fireRate) return;
+            lastShotTime = now;
+
+            weapon.currentMag--;
+            updateUI();
+
+            for (let i = 0; i < weapon.pellets; i++) {
+                const randomSpread = (Math.random() - 0.5) * weapon.spread;
+                const shootAngle = player.angle + randomSpread;
+                playerBullets.push({
+                    x: player.x + Math.cos(player.angle) * weapon.barrelLen,
+                    y: player.y + Math.sin(player.angle) * weapon.barrelLen,
+                    dx: Math.cos(shootAngle) * weapon.speed,
+                    dy: Math.sin(shootAngle) * weapon.speed,
+                    radius: weapon.isExplosive ? 6 : (weapon.name.includes("Sniper") ? 5 : 3.5),
+                    color: weapon.bulletColor,
+                    damage: weapon.damage,
+                    hsMult: weapon.hsMult,
+                    isExplosive: weapon.isExplosive
+                });
+            }
+
+            if (weapon.currentMag === 0 && player.ammo[weapon.ammoType] > 0) {
+                setTimeout(() => {
+                    if (player.inventory[currentWeaponIndex] === weapon && weapon.currentMag === 0) {
+                        startReload();
+                    }
+                }, 150);
+            }
+        }
+
+        function spawnFloatingText(x, y, text, color, isBig) {
+            floatingTexts.push({
+                x: x + (Math.random() - 0.5) * 12,
+                y: y - 18,
+                text: text,
+                color: color,
+                isBig: isBig,
+                alpha: 1.0,
+                vy: -1.1
+            });
+        }
+
+        function moveEntityWithWalls(entity, dx, dy) {
+            let nextX = Math.max(entity.radius, Math.min(WORLD_WIDTH - entity.radius, entity.x + dx));
+            let blockedX = false;
+            // Check POI buildings
+            for (const w of walls) {
+                if (circleRectCollide(nextX, entity.y, entity.radius, w)) { blockedX = true; break; }
+            }
+            // Check Player built walls
+            for (const w of playerBuiltWalls) {
+                if (circleRectCollide(nextX, entity.y, entity.radius, w)) { blockedX = true; break; }
+            }
+            if (!blockedX) entity.x = nextX;
+
+            let nextY = Math.max(entity.radius, Math.min(WORLD_HEIGHT - entity.radius, entity.y + dy));
+            let blockedY = false;
+            for (const w of walls) {
+                if (circleRectCollide(entity.x, nextY, entity.radius, w)) { blockedY = true; break; }
+            }
+            for (const w of playerBuiltWalls) {
+                if (circleRectCollide(entity.x, nextY, entity.radius, w)) { blockedY = true; break; }
+            }
+            if (!blockedY) entity.y = nextY;
+        }
+
+        setInterval(() => {
+            if (isGameOver || robots.length >= 10 || gameState === 'BUS') return;
+            const spawnX = Math.random() * (WORLD_WIDTH - 200) + 100;
+            const spawnY = Math.random() * (WORLD_HEIGHT - 200) + 100;
+            if (Math.hypot(spawnX - player.x, spawnY - player.y) < 400) return;
+
+            const botWeapon = createWeapon(Math.floor(Math.random() * baseWeapons.length), Math.floor(Math.random() * 2));
+            robots.push({
+                x: spawnX, y: spawnY, radius: 16, headRadius: 7, color: "#ff5252", speed: 1.8, angle: 0,
+                totalHp: 200, maxTotalHp: 200, weapon: botWeapon, shootCooldown: Math.floor(Math.random() * 60) + 40
+            });
+        }, 2000);
+
+        function damagePlayer(amount, isHeadshot) {
+            const hadShield = player.shield > 0;
+            if (player.shield > 0) {
+                if (player.shield >= amount) player.shield -= amount;
+                else {
+                    const leftover = amount - player.shield;
+                    player.shield = 0;
+                    player.hp -= leftover;
+                }
+            } else {
+                player.hp -= amount;
+            }
+
+            const color = isHeadshot ? "#ffd600" : (hadShield ? "#29b6f6" : "#ffffff");
+            spawnFloatingText(player.x, player.y, isHeadshot ? `${amount}!` : `${amount}`, color, isHeadshot);
+            shieldEl.innerText = Math.max(0, Math.round(player.shield));
+            hpEl.innerText = Math.max(0, Math.round(player.hp));
+            if (player.hp <= 0) isGameOver = true;
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            if (gameState === 'BUS') {
+                bus.x += Math.cos(busPathAngle) * bus.speed;
+                bus.y += Math.sin(busPathAngle) * bus.speed;
+                player.x = bus.x;
+                player.y = bus.y;
+                poiEl.innerText = "Battle Bus (Press Space to Jump!)";
+                if (bus.x > WORLD_WIDTH || bus.y > WORLD_HEIGHT || bus.x < 0 || bus.y < 0) {
+                    gameState = 'PLAYING';
+                }
+                return;
+            }
+
+            if (player.isJumping) {
+                player.jumpTimer += 0.05;
+                if (player.jumpTimer >= 1) player.isJumping = false;
+            }
+
+            player.angle = Math.atan2(mouse.y - canvas.height / 2, mouse.x - canvas.width / 2);
+
+            const activeWeapon = player.inventory[currentWeaponIndex];
+            if (isMouseDown && activeWeapon && activeWeapon.auto && !player.reloading) {
+                tryShootOrHarvest();
+            }
+
+            let moveX = 0, moveY = 0;
+            if (keys["w"] && Math.hypot(mouse.x - canvas.width / 2, mouse.y - canvas.height / 2) > 8) {
+                moveX += Math.cos(player.angle) * player.speed;
+                moveY += Math.sin(player.angle) * player.speed;
+            }
+            if (keys["s"]) {
+                moveX -= Math.cos(player.angle) * (player.speed * 0.7);
+                moveY -= Math.sin(player.angle) * (player.speed * 0.7);
+            }
+            if (keys["a"]) {
+                const strafe = player.angle - Math.PI / 2;
+                moveX += Math.cos(strafe) * (player.speed * 0.8);
+                moveY += Math.sin(strafe) * (player.speed * 0.8);
+            }
+            if (keys["d"]) {
+                const strafe = player.angle + Math.PI / 2;
+                moveX += Math.cos(strafe) * (player.speed * 0.8);
+                moveY += Math.sin(strafe) * (player.speed * 0.8);
+            }
+            moveEntityWithWalls(player, moveX, moveY);
+
+            for (let i = groundAmmo.length - 1; i >= 0; i--) {
+                const box = groundAmmo[i];
+                if (Math.hypot(player.x - box.x, player.y - box.y) < 32) {
+                    player.ammo[box.type] += box.amount;
+                    spawnFloatingText(box.x, box.y - 10, `+${box.amount} ${box.label}`, box.color, false);
+                    groundAmmo.splice(i, 1);
+                    updateUI();
+                }
+            }
+
+            let currentPoi = "Wilderness";
+            for (const poi of pois) {
+                if (player.x >= poi.x && player.x <= poi.x + poi.w && player.y >= poi.y && player.y <= poi.y + poi.h) {
+                    currentPoi = poi.name;
+                    break;
+                }
+            }
+            poiEl.innerText = currentPoi;
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy;
+                ft.alpha -= 0.02;
+                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+            }
+
+            for (let i = playerBullets.length - 1; i >= 0; i--) {
+                const b = playerBullets[i];
+                b.x += b.dx;
+                b.y += b.dy;
+
+                let hitWall = false;
+                for (const w of walls) {
+                    if (circleRectCollide(b.x, b.y, b.radius, w)) { hitWall = true; break; }
+                }
+                for (let wIdx = playerBuiltWalls.length - 1; wIdx >= 0; wIdx--) {
+                    const pw = playerBuiltWalls[wIdx];
+                    if (circleRectCollide(b.x, b.y, b.radius, pw)) {
+                        pw.hp -= b.damage;
+                        hitWall = true;
+                        if (pw.hp <= 0) playerBuiltWalls.splice(wIdx, 1);
+                        break;
+                    }
+                }
+
+                if (hitWall || b.x < 0 || b.x > WORLD_WIDTH || b.y < 0 || b.y > WORLD_HEIGHT) {
+                    if (b.isExplosive) {
+                        robots.forEach(bot => {
+                            if (Math.hypot(bot.x - b.x, bot.y - b.y) < 90) {
+                                bot.totalHp -= 90;
+                                spawnFloatingText(bot.x, bot.y, "90!", "#ff5252", true);
+                            }
+                        });
+                    }
+                    playerBullets.splice(i, 1);
+                }
+            }
+
+            for (let i = robotBullets.length - 1; i >= 0; i--) {
+                const b = robotBullets[i];
+                b.x += b.dx;
+                b.y += b.dy;
+
+                let hitWall = false;
+                for (const w of walls) {
+                    if (circleRectCollide(b.x, b.y, b.radius, w)) { hitWall = true; break; }
+                }
+                for (let wIdx = playerBuiltWalls.length - 1; wIdx >= 0; wIdx--) {
+                    const pw = playerBuiltWalls[wIdx];
+                    if (circleRectCollide(b.x, b.y, b.radius, pw)) {
+                        pw.hp -= b.damage;
+                        hitWall = true;
+                        if (pw.hp <= 0) playerBuiltWalls.splice(wIdx, 1);
+                        break;
+                    }
+                }
+
+                if (hitWall) { robotBullets.splice(i, 1); continue; }
+
+                const dist = Math.hypot(b.x - player.x, b.y - player.y);
+                if (dist < b.radius + player.radius) {
+                    robotBullets.splice(i, 1);
+                    const isHeadshot = dist < b.radius + player.headRadius;
+                    const finalDamage = Math.round(b.damage * (isHeadshot ? b.hsMult : 1));
+                    damagePlayer(finalDamage, isHeadshot);
+                    continue;
+                }
+
+                if (b.x < 0 || b.x > WORLD_WIDTH || b.y < 0 || b.y > WORLD_HEIGHT) {
+                    robotBullets.splice(i, 1);
+                }
+            }
+
+            for (let i = robots.length - 1; i >= 0; i--) {
+                const bot = robots[i];
+                const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
+
+                if (distToPlayer < 550) {
+                    bot.angle = Math.atan2(player.y - bot.y, player.x - bot.x);
+                    const preferredRange = bot.weapon.name.includes("Shotgun") ? 130 : (bot.weapon.name.includes("Sniper") ? 340 : 230);
+
+                    if (distToPlayer > preferredRange) {
+                        moveEntityWithWalls(bot, Math.cos(bot.angle) * bot.speed, Math.sin(bot.angle) * bot.speed);
+                    }
+
+                    bot.shootCooldown--;
+                    if (bot.shootCooldown <= 0) {
+                        const w = bot.weapon;
+                        for (let p = 0; p < w.pellets; p++) {
+                            const spread = (Math.random() - 0.5) * (w.spread + 0.14);
+                            const shotAngle = bot.angle + spread;
+                            robotBullets.push({
+                                x: bot.x + Math.cos(bot.angle) * w.barrelLen,
+                                y: bot.y + Math.sin(bot.angle) * w.barrelLen,
+                                dx: Math.cos(shotAngle) * (w.speed * 0.65),
+                                dy: Math.sin(shotAngle) * (w.speed * 0.65),
+                                radius: 3.5,
+                                color: "#ff9800",
+                                damage: Math.round(w.damage * 0.5),
+                                hsMult: w.hsMult
+                            });
+                        }
+                        bot.shootCooldown = Math.max(50, Math.round(w.fireRate / 11));
+                    }
+                }
+
+                for (let j = playerBullets.length - 1; j >= 0; j--) {
+                    const b = playerBullets[j];
+                    const dist = Math.hypot(b.x - bot.x, b.y - bot.y);
+                    if (dist < b.radius + bot.radius) {
+                        const isHeadshot = !b.isExplosive && (dist < b.radius + bot.headRadius);
+                        const finalDamage = Math.round(b.damage * (isHeadshot ? b.hsMult : 1));
+                        const hadShield = bot.totalHp > 100;
+
+                        bot.totalHp -= finalDamage;
+                        const color = isHeadshot ? "#ffd600" : (hadShield ? "#29b6f6" : "#ffffff");
+                        spawnFloatingText(bot.x, bot.y, isHeadshot ? `${finalDamage}!` : `${finalDamage}`, color, isHeadshot);
+                        playerBullets.splice(j, 1);
+
+                        if (bot.totalHp <= 0) {
+                            robots.splice(i, 1);
+                            score += 1;
+                            scoreEl.innerText = score;
+                            groundLoot.push({ x: bot.x - 10, y: bot.y, weapon: bot.weapon });
+                            spawnAmmoBox(bot.x + 14, bot.y, bot.weapon.ammoType);
+
+            let scale = 1;
+            if (char === player && player.isJumping) {
+                scale = 1 + Math.sin(player.jumpTimer * Math.PI) * 0.35;
+            }
+            ctx.scale(scale, scale);
+
+            ctx.rotate(char.angle);
+            if (weapon) {
+                ctx.fillStyle = barrelColor;
+                ctx.fillRect(0, -weapon.barrelWidth / 2, weapon.barrelLen, weapon.barrelWidth);
+            }
+            ctx.beginPath();
+            ctx.arc(0, 0, char.radius, 0, Math.PI * 2);
+            ctx.fillStyle = char.color;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#111";
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 0, char.headRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawMinimap() {
+            const mapSize = 140;
+            const pad = 15;
+            const mapX = canvas.width - mapSize - pad;
+            const mapY = pad;
+            const scale = mapSize / WORLD_WIDTH;
+
+            ctx.save();
+            ctx.fillStyle = "rgba(20, 30, 20, 0.85)";
+            ctx.fillRect(mapX, mapY, mapSize, mapSize);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(mapX, mapY, mapSize, mapSize);
+
+            pois.forEach(poi => {
+                ctx.fillStyle = poi.groundColor;
+                ctx.fillRect(mapX + poi.x * scale, mapY + poi.y * scale, poi.w * scale, poi.h * scale);
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.font = "bold 8px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(poi.name.split(" ")[0], mapX + (poi.x + poi.w / 2) * scale, mapY + (poi.y + poi.h / 2) * scale);
+            });
+
+            chests.forEach(c => {
+                if (!c.opened) {
+                    ctx.fillStyle = "#ffd600";
+                    ctx.fillRect(mapX + c.x * scale - 1.5, mapY + c.y * scale - 1.5, 3, 3);
+                }
+            });
+
+            if (gameState === 'BUS') {
+                ctx.fillStyle = "#ffb300";
+                ctx.fillRect(mapX + bus.x * scale - 3, mapY + bus.y * scale - 3, 6, 6);
+            }
+
+            ctx.fillStyle = "#00e5ff";
+            ctx.beginPath();
+            ctx.arc(mapX + player.x * scale, mapY + player.y * scale, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const camX = player.x - canvas.width / 2;
+            const camY = player.y - canvas.height / 2;
+
+            ctx.save();
+            ctx.translate(-camX, -camY);
+
+            ctx.fillStyle = "#3b7a3e";
+            ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+            ctx.strokeStyle = "rgba(0,0,0,0.08)";
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= WORLD_WIDTH; x += 100) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
+            }
+            for (let y = 0; y <= WORLD_HEIGHT; y += 100) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
+            }
+
+            ctx.fillStyle = "#5c5c5c";
+            ctx.fillRect(540, 560, 1320, 40);
+            ctx.fillRect(540, 1820, 1320, 40);
+            ctx.fillRect(540, 560, 40, 1300);
+            ctx.fillRect(1820, 560, 40, 1300);
+
+            pois.forEach(poi => {
+                ctx.fillStyle = poi.groundColor;
+                ctx.fillRect(poi.x, poi.y, poi.w, poi.h);
+                ctx.strokeStyle = poi.borderColor;
+                ctx.lineWidth = 4;
+                ctx.strokeRect(poi.x, poi.y, poi.w, poi.h);
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+                ctx.font = "bold 36px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(poi.name.toUpperCase(), poi.x + poi.w / 2, poi.y + poi.h / 2 + 12);
+
+                poi.buildings.forEach(b => {
+                    ctx.fillStyle = b.color;
+                    ctx.fillRect(b.x, b.y, b.w, b.h);
+                    if (!b.isWater) {
+                        ctx.strokeStyle = "#111";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(b.x, b.y, b.w, b.h);
+                    }
+                });
+            });
+
+            // Draw Player-Built Wooden Walls
+            playerBuiltWalls.forEach(pw => {
+                ctx.fillStyle = "#8d6e63";
+                ctx.fillRect(pw.x, pw.y, pw.w, pw.h);
+                ctx.strokeStyle = "#3e2723";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(pw.x, pw.y, pw.w, pw.h);
+            });
+
+            groundAmmo.forEach(box => {
+                ctx.fillStyle = "#263238";
+                ctx.fillRect(box.x - 9, box.y - 7, 18, 14);
+                ctx.strokeStyle = box.color;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(box.x - 9, box.y - 7, 18, 14);
+                ctx.fillStyle = box.color;
+                ctx.fillRect(box.x - 6, box.y - 2, 12, 4);
+            });
+
+            groundLoot.forEach(item => {
+                const w = item.weapon;
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = w.rarityColor;
+                ctx.stroke();
+
+                ctx.fillStyle = w.rarityColor;
+                ctx.fillRect(item.x - 8, item.y - 2, 16, 4);
+                ctx.fillRect(item.x - 6, item.y + 1, 4, 5);
+
+                if (gameState === 'PLAYING' && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
+                    ctx.fillStyle = w.rarityColor;
+                    ctx.font = "bold 12px Arial";
+                    ctx.textAlign = "center";
+                    ctx.strokeStyle = "#000";
+                    ctx.lineWidth = 3;
+                    const label = `[E] ${w.rarityName} ${w.name}`;
+                    ctx.strokeText(label, item.x, item.y - 20);
+                    ctx.fillText(label, item.x, item.y - 20);
+                }
+            });
+
+            chests.forEach(chest => {
+                ctx.fillStyle = chest.opened ? "#5d4037" : "#ffb300";
+                ctx.fillRect(chest.x - 14, chest.y - 10, 28, 20);
+                ctx.strokeStyle = chest.opened ? "#3e2723" : "#fff59d";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(chest.x - 14, chest.y - 10, 28, 20);
+
+                if (gameState === 'PLAYING' && !chest.opened && Math.hypot(player.x - chest.x, player.y - chest.y) < 60) {
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "bold 12px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("[E] Open Chest", chest.x, chest.y - 18);
+                }
+            });
+
+            const currentW = player.inventory[currentWeaponIndex];
+            drawCharacter(player, currentW, currentW ? currentW.rarityColor : "#90caf9");
+            drawHealthBar(player.x, player.y, player.hp + player.shield, player.maxTotalHp);
+            drawReloadBar();
+
+            robots.forEach(bot => {
+                drawCharacter(bot, bot.weapon, "#b71c1c");
+                drawHealthBar(bot.x, bot.y, bot.totalHp, bot.maxTotalHp);
+            });
+
+            if (gameState === 'BUS') {
+                ctx.save();
+                ctx.translate(bus.x, bus.y);
+                ctx.rotate(busPathAngle);
+                ctx.fillStyle = "#1e88e5";
+                ctx.fillRect(-35, -18, 70, 36);
+                ctx.fillStyle = "#ffd54f";
+                ctx.fillRect(-25, -12, 18, 12);
+                ctx.fillRect(5, -12, 18, 12);
+                ctx.restore();
+
+                ctx.save();
+                ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+                ctx.fillRect(camX, camY + 40, canvas.width, 45);
+                ctx.fillStyle = "#ffeb3b";
+                ctx.font = "bold 20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("BATTLE BUS FLIGHT - Press SPACEBAR to Jump Out!", camX + canvas.width / 2, camY + 68);
+                ctx.restore();
+            }
+
+            [...playerBullets, ...robotBullets].forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fillStyle = b.color;
+                ctx.fill();
+            });
