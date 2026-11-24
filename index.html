@@ -3,45 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Mini Battle Royale</title>
+    <title>3D Battle Royale - Realistic Island & Glider</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background: #87ceeb;
-            font-family: Arial, sans-serif;
+            background: #6baed6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             user-select: none;
         }
         #hud {
             position: absolute;
-            top: 12px;
-            left: 15px;
+            top: 14px;
+            left: 16px;
             display: flex;
             flex-direction: column;
             gap: 6px;
-            background: rgba(15, 15, 20, 0.75);
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 2px solid #444;
+            background: rgba(12, 16, 22, 0.8);
+            backdrop-filter: blur(6px);
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             pointer-events: none;
         }
         .stat-row { display: flex; gap: 18px; font-weight: bold; font-size: 16px; }
-        .shield { color: #29b6f6; }
-        .hp { color: #66bb6a; }
-        .wood { color: #d7ccc8; }
-        .poi { color: #ffd54f; font-size: 14px; }
-        #ammo-row { display: flex; gap: 12px; font-size: 12px; color: #ddd; }
+        .shield { color: #38bdf8; }
+        .hp { color: #4ade80; }
+        .wood { color: #e7c697; }
+        .poi { color: #facc15; font-size: 14px; letter-spacing: 0.5px; }
+        #ammo-row { display: flex; gap: 14px; font-size: 12px; color: #cbd5e1; }
         #crosshair {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             transform: translate(-50%, -50%);
-            border: 2px solid rgba(255, 255, 255, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             pointer-events: none;
+        }
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 3px; height: 3px;
+            background: #ffeb3b;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
         }
         #hotbar {
             position: absolute;
@@ -54,30 +64,32 @@
         }
         .slot {
             padding: 8px 12px;
-            background: rgba(25, 25, 30, 0.85);
-            border: 2px solid #555;
-            border-radius: 6px;
+            background: rgba(15, 20, 28, 0.85);
+            border: 2px solid #475569;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: bold;
             text-align: center;
-            min-width: 110px;
+            min-width: 115px;
+            transition: transform 0.1s;
         }
         .slot.active {
-            border-color: #ffeb3b;
-            transform: scale(1.08);
-            box-shadow: 0 0 12px rgba(255, 235, 59, 0.5);
+            border-color: #facc15;
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
         }
         #banner {
             position: absolute;
-            top: 22%;
+            top: 18%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.75);
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 20px;
+            background: rgba(10, 15, 25, 0.85);
+            border: 2px solid #facc15;
+            padding: 12px 26px;
+            border-radius: 10px;
+            font-size: 19px;
             font-weight: bold;
-            color: #ffeb3b;
+            color: #facc15;
             pointer-events: none;
             text-align: center;
         }
@@ -86,9 +98,10 @@
             top: 62%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 14px;
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #fff;
+            padding: 6px 16px;
+            border-radius: 6px;
             font-size: 14px;
             font-weight: bold;
             display: none;
@@ -96,13 +109,15 @@
         }
         #controls {
             position: absolute;
-            top: 12px;
-            right: 15px;
-            background: rgba(15, 15, 20, 0.75);
+            top: 14px;
+            right: 16px;
+            background: rgba(12, 16, 22, 0.8);
+            backdrop-filter: blur(6px);
             padding: 10px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 12px;
-            line-height: 1.5;
+            line-height: 1.6;
             pointer-events: none;
         }
     </style>
@@ -128,15 +143,16 @@
     <div id="controls">
         <b>Controls:</b><br>
         Click Screen: Lock Mouse Aim<br>
-        WASD: Move | Space: Jump / Exit Bus<br>
-        Left Click: Shoot / Harvest Wood<br>
+        Arrow Keys or WASD: Move / Steer Glider<br>
+        Spacebar: Exit Bus / Deploy Glider / Jump<br>
+        Left Click: Shoot / Chop Trees & Buildings<br>
         E: Open Chest / Pick Up Loot<br>
         Q: Build 3D Wood Wall (10 Wood)<br>
         R: Reload | 1-4: Switch Weapon
     </div>
 
     <div id="crosshair"></div>
-    <div id="banner">BATTLE BUS FLIGHT — Press SPACEBAR to Drop!</div>
+    <div id="banner">BATTLE BUS — Press SPACEBAR to Jump Out!</div>
     <div id="prompt">[E] Interact</div>
 
     <div id="hotbar">
@@ -146,58 +162,137 @@
         <div class="slot" id="slot-3">[4] Empty</div>
     </div>
 
-    <!-- Load Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- SCENE & RENDERER SETUP ---
+        // --- SCENE, ATMOSPHERE & RENDERER ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ec0ee);
-        scene.fog = new THREE.Fog(0x7ec0ee, 180, 750);
+        scene.background = new THREE.Color(0x6fb7e9);
+        scene.fog = new THREE.FogExp2(0x8ecae6, 0.0014);
 
-        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1400);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Lighting
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x3b7a3e, 0.85);
+        // Realistic Sun & Sky Lighting
+        const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x2d5a27, 0.75);
         scene.add(hemiLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(150, 300, 150);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        const sunLight = new THREE.DirectionalLight(0xfff5e4, 1.0);
+        sunLight.position.set(300, 500, 250);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 50;
+        sunLight.shadow.camera.far = 1400;
+        const d = 600;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        scene.add(sunLight);
 
-        // Ground Island (800 x 800 units)
-        const WORLD_SIZE = 800;
-        const groundGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE);
-        const groundMat = new THREE.MeshLambertMaterial({ color: 0x3b7a3e });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
+        // --- LARGE ROLLING TERRAIN (1600 x 1600) ---
+        const WORLD_SIZE = 1600;
 
-        // Grid helper for depth perception
-        const grid = new THREE.GridHelper(WORLD_SIZE, 40, 0x2e6130, 0x2e6130);
-        grid.position.y = 0.05;
-        scene.add(grid);
+        // Elevation math function so player, bots, trees, and chests sit accurately on hills
+        function getTerrainHeight(x, z) {
+            // Flatten inside the 4 POI centers so buildings sit cleanly
+            const poiCenters = [
+                { x: -420, z: -420 },
+                { x: 420, z: -420 },
+                { x: -420, z: 420 },
+                { x: 420, z: 420 }
+            ];
+            for (const p of poiCenters) {
+                const dist = Math.hypot(x - p.x, z - p.z);
+                if (dist < 130) return 0;
+                if (dist < 190) {
+                    const blend = (dist - 130) / 60;
+                    return blend * rawHillHeight(x, z);
+                }
+            }
+            return rawHillHeight(x, z);
+        }
+
+        function rawHillHeight(x, z) {
+            const h1 = Math.sin(x * 0.007) * Math.cos(z * 0.007) * 18;
+            const h2 = Math.sin(x * 0.018 + 1.2) * Math.sin(z * 0.015) * 7;
+            return Math.max(-2, h1 + h2 + 6);
+        }
+
+        const terrainGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, 128, 128);
+        terrainGeo.rotateX(-Math.PI / 2);
+
+        const posAttr = terrainGeo.attributes.position;
+        const colors = [];
+        for (let i = 0; i < posAttr.count; i++) {
+            const vx = posAttr.getX(i);
+            const vz = posAttr.getZ(i);
+            const vy = getTerrainHeight(vx, vz);
+            posAttr.setY(i, vy);
+
+            // Realistic vertex shading based on elevation
+            if (vy > 18) {
+                colors.push(0.45, 0.48, 0.42); // Rocky hilltops
+            } else if (vy > 8) {
+                colors.push(0.24, 0.52, 0.22); // Highland grass
+            } else {
+                colors.push(0.18, 0.44, 0.18); // Lush valley grass
+            }
+        }
+        terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        terrainGeo.computeVertexNormals();
+
+        const terrainMat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.9,
+            metalness: 0.05
+        });
+        const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+        terrain.receiveShadow = true;
+        scene.add(terrain);
+
+        // Surrounding Ocean Water Plane
+        const ocean = new THREE.Mesh(
+            new THREE.PlaneGeometry(4000, 4000),
+            new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.4 })
+        );
+        ocean.rotation.x = -Math.PI / 2;
+        ocean.position.y = -2.5;
+        scene.add(ocean);
+
+        // Volumetric Clouds in the Sky
+        const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+        for (let i = 0; i < 35; i++) {
+            const cloud = new THREE.Group();
+            const puffs = 3 + Math.floor(Math.random() * 3);
+            for (let p = 0; p < puffs; p++) {
+                const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(14 + Math.random() * 10, 1), cloudMat);
+                puff.position.set(p * 14, Math.random() * 5, (Math.random() - 0.5) * 12);
+                cloud.add(puff);
+            }
+            cloud.position.set((Math.random() - 0.5) * 1600, 145 + Math.random() * 40, (Math.random() - 0.5) * 1600);
+            scene.add(cloud);
+        }
 
         // --- WEAPONS & RARITIES ---
         const rarities = [
-            { name: "Common", hex: "#b0bec5", color: 0xb0bec5, mult: 1.0 },
-            { name: "Uncommon", hex: "#66bb6a", color: 0x66bb6a, mult: 1.1 },
-            { name: "Rare", hex: "#29b6f6", color: 0x29b6f6, mult: 1.2 },
-            { name: "Epic", hex: "#ab47bc", color: 0xab47bc, mult: 1.35 },
-            { name: "Legendary", hex: "#ffa726", color: 0xffa726, mult: 1.5 }
+            { name: "Common", hex: "#94a3b8", color: 0x94a3b8, mult: 1.0 },
+            { name: "Uncommon", hex: "#4ade80", color: 0x4ade80, mult: 1.1 },
+            { name: "Rare", hex: "#38bdf8", color: 0x38bdf8, mult: 1.22 },
+            { name: "Epic", hex: "#c084fc", color: 0xc084fc, mult: 1.35 },
+            { name: "Legendary", hex: "#fb923c", color: 0xfb923c, mult: 1.5 }
         ];
 
         const baseWeapons = [
-            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 28, rate: 200, speed: 4.5, pellets: 1, spread: 0.02, auto: true },
-            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 22, rate: 850, speed: 3.8, pellets: 6, spread: 0.14, auto: false },
-            { id: 2, name: "Tactical SMG", ammo: "light", mag: 35, dmg: 17, rate: 95, speed: 4.2, pellets: 1, spread: 0.05, auto: true },
-            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 110, rate: 1200, speed: 7.0, pellets: 1, spread: 0.0, auto: false }
+            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 28, rate: 190, speed: 5.5, pellets: 1, spread: 0.02, auto: true },
+            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 22, rate: 850, speed: 4.5, pellets: 6, spread: 0.14, auto: false },
+            { id: 2, name: "Tactical SMG", ammo: "light", mag: 35, dmg: 17, rate: 90, speed: 5.0, pellets: 1, spread: 0.05, auto: true },
+            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 115, rate: 1200, speed: 8.5, pellets: 1, spread: 0.0, auto: false }
         ];
 
         function makeWeapon(typeIdx, rarityIdx) {
@@ -213,13 +308,16 @@
             };
         }
 
-        // --- PLAYER STATE ---
+        // --- PLAYER STATE & 3D CHARACTER ---
+        // States: 'BUS', 'SKYDIVING', 'GLIDING', 'PLAYING', 'GAMEOVER'
+        let gameState = 'BUS';
+
         const player = {
-            x: -350, y: 120, z: 0,
+            x: -720, y: 185, z: -120,
             vy: 0,
-            yaw: 0,
-            pitch: -0.25,
-            speed: 0.65,
+            yaw: -Math.PI / 2,
+            pitch: -0.2,
+            speed: 0.8,
             hp: 100,
             shield: 100,
             wood: 0,
@@ -231,136 +329,210 @@
             reloading: false
         };
 
-        let gameState = 'BUS'; // 'BUS', 'PLAYING', 'GAMEOVER'
         let lastShot = 0;
         let isMouseDown = false;
         const keys = {};
 
-        // Player 3D Mesh
+        // Detailed 3D Character Model
         const playerGroup = new THREE.Group();
-        const bodyMesh = new THREE.Mesh(
-            new THREE.CylinderGeometry(1.4, 1.4, 3.6, 12),
-            new THREE.MeshLambertMaterial({ color: 0x00d2ff })
+        const torso = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 2.4, 1.0),
+            new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.6 })
         );
-        bodyMesh.position.y = 1.8;
-        playerGroup.add(bodyMesh);
+        torso.position.y = 2.6;
+        torso.castShadow = true;
+
+        const legL = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.8), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+        legL.position.set(-0.45, 0.8, 0);
+        const legR = legL.clone();
+        legR.position.x = 0.45;
 
         const headMesh = new THREE.Mesh(
-            new THREE.SphereGeometry(1.0, 12, 12),
-            new THREE.MeshLambertMaterial({ color: 0xffe0b2 })
+            new THREE.SphereGeometry(0.85, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.5 })
         );
-        headMesh.position.y = 4.2;
-        playerGroup.add(headMesh);
+        headMesh.position.y = 4.5;
+        headMesh.castShadow = true;
 
         const gunMesh = new THREE.Mesh(
-            new THREE.BoxGeometry(0.4, 0.4, 2.6),
-            new THREE.MeshLambertMaterial({ color: 0x222222 })
+            new THREE.BoxGeometry(0.35, 0.45, 2.8),
+            new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.7, roughness: 0.3 })
         );
-        gunMesh.position.set(1.2, 2.5, -1.2);
+        gunMesh.position.set(1.1, 2.9, -1.2);
         gunMesh.visible = false;
-        playerGroup.add(gunMesh);
 
+        // 3D Deployable Glider Wing
+        const gliderGroup = new THREE.Group();
+        const wingMain = new THREE.Mesh(
+            new THREE.BoxGeometry(11, 0.3, 4.2),
+            new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.3 })
+        );
+        const wingStripe = new THREE.Mesh(
+            new THREE.BoxGeometry(11.1, 0.35, 1.2),
+            new THREE.MeshStandardMaterial({ color: 0x0284c7 })
+        );
+        const handleBar = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.12, 0.12, 4.5),
+            new THREE.MeshStandardMaterial({ color: 0x334155 })
+        );
+        handleBar.rotation.z = Math.PI / 2;
+        handleBar.position.y = -1.6;
+        gliderGroup.add(wingMain, wingStripe, handleBar);
+        gliderGroup.position.set(0, 6.8, 0);
+        gliderGroup.visible = false;
+
+        playerGroup.add(torso, legL, legR, headMesh, gunMesh, gliderGroup);
         scene.add(playerGroup);
 
         // Battle Bus 3D Mesh
         const busGroup = new THREE.Group();
-        const busBody = new THREE.Mesh(
-            new THREE.BoxGeometry(14, 6, 6),
-            new THREE.MeshLambertMaterial({ color: 0x1e88e5 })
+        const busChassis = new THREE.Mesh(
+            new THREE.BoxGeometry(18, 7, 7),
+            new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.4 })
         );
-        const balloon = new THREE.Mesh(
-            new THREE.SphereGeometry(7, 16, 16),
-            new THREE.MeshLambertMaterial({ color: 0xffb300 })
+        const busBalloon = new THREE.Mesh(
+            new THREE.SphereGeometry(9, 20, 20),
+            new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 })
         );
-        balloon.position.y = 11;
-        busGroup.add(busBody, balloon);
-        busGroup.position.set(-350, 120, 0);
+        busBalloon.position.y = 14;
+        busGroup.add(busChassis, busBalloon);
+        busGroup.position.set(-720, 185, -120);
         scene.add(busGroup);
 
-        // --- 4 POIS & DESTRUCTIBLE 3D BUILDINGS ---
-        const obstacles = []; // { mesh, x, z, w, d, h, hp }
+        // --- OBSTACLES: 4 POIS, TREES & ROCKS ---
+        const obstacles = []; // { mesh, x, z, w, d, h, hp, isTree }
+
         const pois = [
-            { name: "Realities Reign", x: -200, z: -200, ground: 0x4a2c6b, wallColor: 0x7b1fa2, spireColor: 0xce93d8 },
-            { name: "Cursed Cavern", x: 200, z: -200, ground: 0x263238, wallColor: 0x37474f, spireColor: 0x00bfa5 },
-            { name: "Stone Sanctum", x: -200, z: 200, ground: 0x6d6552, wallColor: 0x8d6e63, spireColor: 0xd7ccc8 },
-            { name: "Busy Bay", x: 200, z: 200, ground: 0xd7b878, wallColor: 0xe53935, spireColor: 0x0288d1 }
+            { name: "Realities Reign", x: -420, z: -420, ground: 0x581c87, wallColor: 0x7e22ce, spireColor: 0xd8b4fe },
+            { name: "Cursed Cavern", x: 420, z: -420, ground: 0x1e293b, wallColor: 0x334155, spireColor: 0x14b8a6 },
+            { name: "Stone Sanctum", x: -420, z: 420, ground: 0x78716c, wallColor: 0xa8a29e, spireColor: 0xe7e5e4 },
+            { name: "Busy Bay", x: 420, z: 420, ground: 0xd97706, wallColor: 0xdc2626, spireColor: 0x0284c7 }
         ];
 
         function addBuilding(x, z, w, h, d, color, hp = 150) {
+            const groundY = getTerrainHeight(x, z);
             const mesh = new THREE.Mesh(
                 new THREE.BoxGeometry(w, h, d),
-                new THREE.MeshLambertMaterial({ color })
+                new THREE.MeshStandardMaterial({ color, roughness: 0.75 })
             );
-            mesh.position.set(x, h / 2, z);
+            mesh.position.set(x, groundY + h / 2, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             scene.add(mesh);
-            obstacles.push({ mesh, x, z, w, d, h, hp });
+            obstacles.push({ mesh, x, z, w, d, h, hp, isTree: false });
         }
 
         pois.forEach(poi => {
             const pad = new THREE.Mesh(
-                new THREE.PlaneGeometry(180, 180),
-                new THREE.MeshLambertMaterial({ color: poi.ground })
+                new THREE.PlaneGeometry(240, 240),
+                new THREE.MeshStandardMaterial({ color: poi.ground, roughness: 0.9 })
             );
             pad.rotation.x = -Math.PI / 2;
-            pad.position.set(poi.x, 0.1, poi.z);
+            pad.position.set(poi.x, 0.15, poi.z);
+            pad.receiveShadow = true;
             scene.add(pad);
 
-            // 4 Outer Structures + 1 Center Landmark
-            addBuilding(poi.x - 50, poi.z - 50, 26, 12, 8, poi.wallColor);
-            addBuilding(poi.x + 50, poi.z - 50, 26, 12, 8, poi.wallColor);
-            addBuilding(poi.x - 50, poi.z + 50, 26, 12, 8, poi.wallColor);
-            addBuilding(poi.x + 50, poi.z + 50, 26, 12, 8, poi.wallColor);
-            addBuilding(poi.x, poi.z, 20, 22, 20, poi.spireColor, 300);
+            addBuilding(poi.x - 65, poi.z - 65, 32, 14, 10, poi.wallColor);
+            addBuilding(poi.x + 65, poi.z - 65, 32, 14, 10, poi.wallColor);
+            addBuilding(poi.x - 65, poi.z + 65, 32, 14, 10, poi.wallColor);
+            addBuilding(poi.x + 65, poi.z + 65, 32, 14, 10, poi.wallColor);
+            addBuilding(poi.x, poi.z, 24, 28, 24, poi.spireColor, 300);
         });
+
+        // Generate 220 Realistic 3D Pine & Oak Trees across the island
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+        const pineLeavesMat = new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.8 });
+        const oakLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.8 });
+
+        for (let i = 0; i < 220; i++) {
+            const tx = (Math.random() - 0.5) * 1450;
+            const tz = (Math.random() - 0.5) * 1450;
+
+            // Keep trees outside POI plazas
+            let inPoi = false;
+            for (const p of pois) {
+                if (Math.hypot(tx - p.x, tz - p.z) < 135) { inPoi = true; break; }
+            }
+            if (inPoi) continue;
+
+            const ty = getTerrainHeight(tx, tz);
+            const treeGroup = new THREE.Group();
+
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.3, 8, 8), trunkMat);
+            trunk.position.y = 4;
+            trunk.castShadow = true;
+            treeGroup.add(trunk);
+
+            if (Math.random() < 0.6) {
+                // Layered Pine Tree
+                const c1 = new THREE.Mesh(new THREE.ConeGeometry(5.5, 9, 8), pineLeavesMat);
+                c1.position.y = 9.5;
+                c1.castShadow = true;
+                const c2 = new THREE.Mesh(new THREE.ConeGeometry(4.0, 8, 8), pineLeavesMat);
+                c2.position.y = 14.5;
+                c2.castShadow = true;
+                treeGroup.add(c1, c2);
+            } else {
+                // Lush Oak Tree
+                const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(5.8, 1), oakLeavesMat);
+                crown.position.y = 10.5;
+                crown.castShadow = true;
+                treeGroup.add(crown);
+            }
+
+            treeGroup.position.set(tx, ty, tz);
+            scene.add(treeGroup);
+            obstacles.push({ mesh: treeGroup, x: tx, z: tz, w: 3.5, d: 3.5, h: 16, hp: 100, isTree: true });
+        }
 
         // --- CHESTS, GROUND LOOT & AMMO ---
         const chests = [];
         const lootItems = [];
 
         function spawnChest(x, z) {
+            const y = getTerrainHeight(x, z);
             const mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(4, 3, 3),
-                new THREE.MeshLambertMaterial({ color: 0xffb300 })
+                new THREE.BoxGeometry(4.5, 3.2, 3.2),
+                new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3, metalness: 0.5 })
             );
-            mesh.position.set(x, 1.5, z);
+            mesh.position.set(x, y + 1.6, z);
+            mesh.castShadow = true;
             scene.add(mesh);
-            chests.push({ mesh, x, z, opened: false });
+            chests.push({ mesh, x, y, z, opened: false });
         }
 
         function spawnGroundLoot(x, z, weapon, ammoType = null) {
-            const color = weapon ? weapon.rarityColor : 0x4dd0e1;
+            const y = getTerrainHeight(x, z);
+            const color = weapon ? weapon.rarityColor : 0x38bdf8;
             const mesh = new THREE.Mesh(
-                weapon ? new THREE.BoxGeometry(3, 0.8, 0.8) : new THREE.BoxGeometry(2, 1.4, 2),
-                new THREE.MeshLambertMaterial({ color })
+                weapon ? new THREE.BoxGeometry(3.2, 0.9, 0.9) : new THREE.BoxGeometry(2.2, 1.5, 2.2),
+                new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 })
             );
-            mesh.position.set(x, 1.2, z);
+            mesh.position.set(x, y + 1.4, z);
             scene.add(mesh);
-            lootItems.push({ mesh, x, z, weapon, ammoType });
+            lootItems.push({ mesh, x, y, z, weapon, ammoType });
         }
 
-        // Place chests inside POIs & center
         pois.forEach(p => {
-            spawnChest(p.x - 35, p.z - 35);
-            spawnChest(p.x + 35, p.z + 35);
+            spawnChest(p.x - 45, p.z - 45);
+            spawnChest(p.x + 45, p.z + 45);
+            spawnChest(p.x, p.z + 30);
         });
-        spawnChest(0, -15);
-        spawnChest(0, 15);
+        spawnChest(0, -25);
+        spawnChest(0, 25);
 
-        // Scatter 40 floor weapons & 45 ammo boxes
-        for (let i = 0; i < 40; i++) {
-            const x = (Math.random() - 0.5) * 700;
-            const z = (Math.random() - 0.5) * 700;
+        for (let i = 0; i < 65; i++) {
+            const x = (Math.random() - 0.5) * 1400;
+            const z = (Math.random() - 0.5) * 1400;
             const type = Math.floor(Math.random() * baseWeapons.length);
             const rar = Math.random() < 0.6 ? 0 : 1;
             spawnGroundLoot(x, z, makeWeapon(type, rar), null);
         }
 
         const ammoKeys = ["medium", "shells", "light", "heavy"];
-        for (let i = 0; i < 45; i++) {
-            const x = (Math.random() - 0.5) * 700;
-            const z = (Math.random() - 0.5) * 700;
+        for (let i = 0; i < 75; i++) {
+            const x = (Math.random() - 0.5) * 1400;
+            const z = (Math.random() - 0.5) * 1400;
             const aType = ammoKeys[Math.floor(Math.random() * ammoKeys.length)];
             spawnGroundLoot(x, z, null, aType);
         }
@@ -370,34 +542,35 @@
         const bullets = [];
 
         function spawnBot() {
-            if (bots.length >= 10 || gameState !== 'PLAYING') return;
-            const x = (Math.random() - 0.5) * 700;
-            const z = (Math.random() - 0.5) * 700;
-            if (Math.hypot(x - player.x, z - player.z) < 90) return;
+            if (bots.length >= 14 || gameState !== 'PLAYING') return;
+            const x = (Math.random() - 0.5) * 1350;
+            const z = (Math.random() - 0.5) * 1350;
+            if (Math.hypot(x - player.x, z - player.z) < 110) return;
 
+            const y = getTerrainHeight(x, z);
             const group = new THREE.Group();
             const body = new THREE.Mesh(
-                new THREE.CylinderGeometry(1.4, 1.4, 3.6, 12),
-                new THREE.MeshLambertMaterial({ color: 0xff5252 })
+                new THREE.BoxGeometry(1.8, 2.4, 1.0),
+                new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.5 })
             );
-            body.position.y = 1.8;
+            body.position.y = 2.6;
             const head = new THREE.Mesh(
-                new THREE.SphereGeometry(1.0, 12, 12),
-                new THREE.MeshLambertMaterial({ color: 0xb71c1c })
+                new THREE.SphereGeometry(0.85, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0x7f1d1d })
             );
-            head.position.y = 4.2;
+            head.position.y = 4.5;
             group.add(body, head);
-            group.position.set(x, 0, z);
+            group.position.set(x, y, z);
             scene.add(group);
 
             bots.push({
-                group, x, z,
+                group, x, y, z,
                 hp: 200,
                 weapon: makeWeapon(Math.floor(Math.random() * 4), 1),
                 cooldown: 60
             });
         }
-        setInterval(spawnBot, 2500);
+        setInterval(spawnBot, 2200);
 
         // --- UI & CONTROLS ---
         function updateHUD() {
@@ -415,21 +588,20 @@
                 const el = document.getElementById(`slot-${i}`);
                 if (w) {
                     el.innerHTML = `[${i + 1}] ${w.rarityName} ${w.name}<br><small>${w.currentMag}/${w.mag}</small>`;
-                    el.style.borderColor = i === player.slot ? "#ffeb3b" : w.rarityHex;
+                    el.style.borderColor = i === player.slot ? "#facc15" : w.rarityHex;
                 } else {
                     el.innerHTML = `[${i + 1}] Empty`;
-                    el.style.borderColor = i === player.slot ? "#ffeb3b" : "#555";
+                    el.style.borderColor = i === player.slot ? "#facc15" : "#475569";
                 }
                 el.classList.toggle("active", i === player.slot);
             }
 
             const activeW = player.inventory[player.slot];
-            gunMesh.visible = !!activeW;
+            gunMesh.visible = !!activeW && gameState === 'PLAYING';
             if (activeW) gunMesh.material.color.setHex(activeW.rarityColor);
         }
         updateHUD();
 
-        // Pointer Lock for 3D Mouse Look
         renderer.domElement.addEventListener("click", () => {
             if (document.pointerLockElement !== renderer.domElement) {
                 renderer.domElement.requestPointerLock();
@@ -439,13 +611,19 @@
         document.addEventListener("mousemove", (e) => {
             if (document.pointerLockElement === renderer.domElement) {
                 player.yaw -= e.movementX * 0.0025;
-                player.pitch = Math.max(-0.8, Math.min(0.4, player.pitch - e.movementY * 0.002));
+                player.pitch = Math.max(-0.85, Math.min(0.45, player.pitch - e.movementY * 0.002));
             }
         });
 
         window.addEventListener("keydown", (e) => {
+            // Prevent arrow keys & spacebar from scrolling the browser window
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+                e.preventDefault();
+            }
+
             const k = e.key.toLowerCase();
             keys[k] = true;
+            keys[e.code] = true;
 
             if (k >= '1' && k <= '4') {
                 player.slot = parseInt(k) - 1;
@@ -454,11 +632,21 @@
             }
 
             if (e.code === "Space") {
+                const banner = document.getElementById("banner");
                 if (gameState === 'BUS') {
-                    gameState = 'PLAYING';
-                    document.getElementById("banner").style.display = "none";
+                    gameState = 'SKYDIVING';
+                    banner.innerText = "SKYDIVING — Press SPACEBAR to Open Glider!";
+                } else if (gameState === 'SKYDIVING') {
+                    gameState = 'GLIDING';
+                    gliderGroup.visible = true;
+                    banner.innerText = "GLIDING — Steer to your Landing Spot!";
+                } else if (gameState === 'GLIDING') {
+                    // Toggle glider off to dive faster
+                    gameState = 'SKYDIVING';
+                    gliderGroup.visible = false;
+                    banner.innerText = "SKYDIVING — Press SPACEBAR to Open Glider!";
                 } else if (player.onGround && gameState === 'PLAYING') {
-                    player.vy = 0.85;
+                    player.vy = 0.9;
                     player.onGround = false;
                 }
             }
@@ -468,7 +656,10 @@
             if (k === "q" && gameState === 'PLAYING') buildWall();
         });
 
-        window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
+        window.addEventListener("keyup", (e) => {
+            keys[e.key.toLowerCase()] = false;
+            keys[e.code] = false;
+        });
 
         window.addEventListener("mousedown", () => {
             if (document.pointerLockElement === renderer.domElement && gameState === 'PLAYING') {
@@ -481,16 +672,19 @@
         function buildWall() {
             if (player.wood < 10) return;
             player.wood -= 10;
-            const wx = player.x - Math.sin(player.yaw) * 10;
-            const wz = player.z - Math.cos(player.yaw) * 10;
+            const wx = player.x - Math.sin(player.yaw) * 11;
+            const wz = player.z - Math.cos(player.yaw) * 11;
+            const wy = getTerrainHeight(wx, wz);
+
             const mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(10, 9, 1.5),
-                new THREE.MeshLambertMaterial({ color: 0xa1887f })
+                new THREE.BoxGeometry(11, 10, 1.5),
+                new THREE.MeshStandardMaterial({ color: 0xa1887f, roughness: 0.85 })
             );
-            mesh.position.set(wx, 4.5, wz);
+            mesh.position.set(wx, wy + 5, wz);
             mesh.rotation.y = player.yaw;
+            mesh.castShadow = true;
             scene.add(mesh);
-            obstacles.push({ mesh, x: wx, z: wz, w: 8, d: 8, h: 9, hp: 150 });
+            obstacles.push({ mesh, x: wx, z: wz, w: 8, d: 8, h: 10, hp: 150, isTree: false });
             updateHUD();
         }
 
@@ -517,26 +711,24 @@
         }
 
         function interact() {
-            // Check Chests
             for (const c of chests) {
-                if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 12) {
+                if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
                     c.opened = true;
-                    c.mesh.material.color.setHex(0x5d4037);
+                    c.mesh.material.color.setHex(0x44403c);
                     const wType = Math.floor(Math.random() * baseWeapons.length);
                     const rar = Math.random() < 0.5 ? 2 : (Math.random() < 0.8 ? 3 : 4);
                     const gun = makeWeapon(wType, rar);
-                    spawnGroundLoot(c.x + 3, c.z + 3, gun, null);
-                    spawnGroundLoot(c.x - 3, c.z + 3, null, gun.ammo);
+                    spawnGroundLoot(c.x + 3.5, c.z + 3.5, gun, null);
+                    spawnGroundLoot(c.x - 3.5, c.z + 3.5, null, gun.ammo);
                     player.shield = Math.min(100, player.shield + 25);
                     updateHUD();
                     return;
                 }
             }
 
-            // Check Ground Loot
             for (let i = lootItems.length - 1; i >= 0; i--) {
                 const item = lootItems[i];
-                if (Math.hypot(player.x - item.x, player.z - item.z) < 10) {
+                if (Math.hypot(player.x - item.x, player.z - item.z) < 11) {
                     if (item.ammoType) {
                         player.ammo[item.ammoType] += 24;
                     } else if (item.weapon) {
@@ -559,17 +751,17 @@
             const w = player.inventory[player.slot];
             const now = Date.now();
 
-            // Harvest Wood if unarmed
+            // Chop trees or smash buildings when unarmed
             if (!w) {
                 if (now - lastShot < 350) return;
                 lastShot = now;
-                const hx = player.x - Math.sin(player.yaw) * 8;
-                const hz = player.z - Math.cos(player.yaw) * 8;
+                const hx = player.x - Math.sin(player.yaw) * 9;
+                const hz = player.z - Math.cos(player.yaw) * 9;
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     const ob = obstacles[i];
-                    if (Math.abs(hx - ob.x) < ob.w / 2 + 4 && Math.abs(hz - ob.z) < ob.d / 2 + 4) {
+                    if (Math.abs(hx - ob.x) < ob.w / 2 + 5 && Math.abs(hz - ob.z) < ob.d / 2 + 5) {
                         ob.hp -= 35;
-                        player.wood += 15;
+                        player.wood += ob.isTree ? 25 : 15;
                         if (ob.hp <= 0) {
                             scene.remove(ob.mesh);
                             obstacles.splice(i, 1);
@@ -600,7 +792,7 @@
                     new THREE.SphereGeometry(0.35, 6, 6),
                     new THREE.MeshBasicMaterial({ color: w.rarityColor })
                 );
-                mesh.position.set(player.x, player.y + 3.2, player.z);
+                mesh.position.set(player.x, player.y + 3.4, player.z);
                 scene.add(mesh);
 
                 bullets.push({
@@ -610,7 +802,7 @@
                     vz: -Math.cos(spreadYaw) * Math.cos(spreadPitch) * w.speed,
                     damage: w.damage,
                     fromPlayer: true,
-                    life: 90
+                    life: 110
                 });
             }
         }
@@ -624,55 +816,116 @@
             return false;
         }
 
-        // --- MAIN 3D GAME LOOP ---
+        function getMoveInputs() {
+            let forward = 0, right = 0;
+            if (keys['w'] || keys['ArrowUp']) forward += 1;
+            if (keys['s'] || keys['ArrowDown']) forward -= 1;
+            if (keys['d'] || keys['ArrowRight']) right += 1;
+            if (keys['a'] || keys['ArrowLeft']) right -= 1;
+            return { forward, right };
+        }
+
+        // --- MAIN 3D ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
             if (gameState === 'BUS') {
-                busGroup.position.x += 0.9;
+                busGroup.position.x += 1.35;
+                busGroup.position.z += 0.25;
                 player.x = busGroup.position.x;
                 player.y = busGroup.position.y;
                 player.z = busGroup.position.z;
                 playerGroup.position.set(player.x, player.y, player.z);
 
-                camera.position.set(player.x - 28, player.y + 16, player.z + 28);
+                camera.position.set(player.x - 36, player.y + 20, player.z + 36);
                 camera.lookAt(player.x, player.y, player.z);
 
-                if (busGroup.position.x > 350) {
-                    gameState = 'PLAYING';
-                    document.getElementById("banner").style.display = "none";
+                if (busGroup.position.x > 720) {
+                    gameState = 'SKYDIVING';
+                    document.getElementById("banner").innerText = "SKYDIVING — Press SPACEBAR to Open Glider!";
                 }
                 renderer.render(scene, camera);
                 return;
             }
 
+            // --- SKYDIVING & GLIDING STATES ---
+            if (gameState === 'SKYDIVING' || gameState === 'GLIDING') {
+                const { forward, right } = getMoveInputs();
+                const airSpeed = gameState === 'GLIDING' ? 1.45 : 0.95;
+                const fallSpeed = gameState === 'GLIDING' ? 0.32 : 1.15;
+
+                // Glider always glides forward gently even if no key is pressed
+                const fwdAmount = gameState === 'GLIDING' ? Math.max(0.5, forward) : forward;
+
+                player.x += (-Math.sin(player.yaw) * fwdAmount + Math.cos(player.yaw) * right) * airSpeed;
+                player.z += (-Math.cos(player.yaw) * fwdAmount - Math.sin(player.yaw) * right) * airSpeed;
+                player.y -= fallSpeed;
+
+                player.x = Math.max(-760, Math.min(760, player.x));
+                player.z = Math.max(-760, Math.min(760, player.z));
+
+                const groundY = getTerrainHeight(player.x, player.z);
+
+                // Auto-deploy glider when close to ground
+                if (gameState === 'SKYDIVING' && player.y - groundY < 38) {
+                    gameState = 'GLIDING';
+                    gliderGroup.visible = true;
+                    document.getElementById("banner").innerText = "GLIDER AUTO-DEPLOYED!";
+                }
+
+                // Land on the island!
+                if (player.y <= groundY) {
+                    player.y = groundY;
+                    player.onGround = true;
+                    gameState = 'PLAYING';
+                    gliderGroup.visible = false;
+                    document.getElementById("banner").style.display = "none";
+                    updateHUD();
+                }
+
+                playerGroup.position.set(player.x, player.y, player.z);
+                playerGroup.rotation.y = player.yaw;
+
+                const camDist = 18;
+                camera.position.set(
+                    player.x + Math.sin(player.yaw) * camDist,
+                    player.y + 8 - player.pitch * 6,
+                    player.z + Math.cos(player.yaw) * camDist
+                );
+                camera.lookAt(
+                    player.x - Math.sin(player.yaw) * 20,
+                    player.y + 2 + player.pitch * 15,
+                    player.z - Math.cos(player.yaw) * 20
+                );
+
+                document.getElementById("poi-name").innerText = gameState === 'GLIDING' ? "Gliding Down" : "Skydiving";
+                renderer.render(scene, camera);
+                return;
+            }
+
+            // --- GROUND COMBAT & EXPLORATION ---
             if (gameState === 'PLAYING') {
                 const activeW = player.inventory[player.slot];
                 if (isMouseDown && activeW && activeW.auto) shootOrHarvest();
 
-                // Movement relative to camera Yaw
-                let moveForward = 0, moveRight = 0;
-                if (keys['w']) moveForward += 1;
-                if (keys['s']) moveForward -= 1;
-                if (keys['d']) moveRight += 1;
-                if (keys['a']) moveRight -= 1;
-
-                const dx = (-Math.sin(player.yaw) * moveForward + Math.cos(player.yaw) * moveRight) * player.speed;
-                const dz = (-Math.cos(player.yaw) * moveForward - Math.sin(player.yaw) * moveRight) * player.speed;
+                const { forward, right } = getMoveInputs();
+                const dx = (-Math.sin(player.yaw) * forward + Math.cos(player.yaw) * right) * player.speed;
+                const dz = (-Math.cos(player.yaw) * forward - Math.sin(player.yaw) * right) * player.speed;
 
                 if (!checkCollision(player.x + dx, player.z)) player.x += dx;
                 if (!checkCollision(player.x, player.z + dz)) player.z += dz;
 
-                // Keep inside island
-                player.x = Math.max(-390, Math.min(390, player.x));
-                player.z = Math.max(-390, Math.min(390, player.z));
+                player.x = Math.max(-780, Math.min(780, player.x));
+                player.z = Math.max(-780, Math.min(780, player.z));
 
-                // Gravity & Jumping
+                // Terrain-following Elevation & Jump Physics
+                const groundY = getTerrainHeight(player.x, player.z);
                 player.y += player.vy;
-                if (player.y > 0) {
-                    player.vy -= 0.035;
+                if (player.y > groundY) {
+                    player.vy -= 0.038;
+                    player.onGround = false;
                 } else {
-                    player.y = 0;
+                    player.y = groundY;
                     player.vy = 0;
                     player.onGround = true;
                 }
@@ -680,7 +933,7 @@
                 playerGroup.position.set(player.x, player.y, player.z);
                 playerGroup.rotation.y = player.yaw;
 
-                // Third-person Over-the-Shoulder Camera
+                // Third-Person Camera
                 const camDist = 14;
                 const camX = player.x + Math.sin(player.yaw) * camDist + Math.cos(player.yaw) * 2.2;
                 const camZ = player.z + Math.cos(player.yaw) * camDist - Math.sin(player.yaw) * 2.2;
@@ -694,20 +947,20 @@
                 );
 
                 // Update POI Name
-                let loc = "Wilderness";
+                let loc = "Wilderness Hills";
                 for (const p of pois) {
-                    if (Math.abs(player.x - p.x) < 90 && Math.abs(player.z - p.z) < 90) {
+                    if (Math.abs(player.x - p.x) < 120 && Math.abs(player.z - p.z) < 120) {
                         loc = p.name;
                         break;
                     }
                 }
                 document.getElementById("poi-name").innerText = loc;
 
-                // Show Interaction Prompt
+                // Interaction Prompt
                 const promptEl = document.getElementById("prompt");
                 let showPrompt = false;
                 for (const c of chests) {
-                    if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 12) {
+                    if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
                         promptEl.innerText = "[E] Open Chest";
                         showPrompt = true;
                         break;
@@ -715,7 +968,7 @@
                 }
                 if (!showPrompt) {
                     for (const item of lootItems) {
-                        if (Math.hypot(player.x - item.x, player.z - item.z) < 10) {
+                        if (Math.hypot(player.x - item.x, player.z - item.z) < 11) {
                             promptEl.innerText = item.weapon ? `[E] Pick up ${item.weapon.rarityName} ${item.weapon.name}` : `[E] Collect Ammo`;
                             showPrompt = true;
                             break;
@@ -724,7 +977,6 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
-                // Rotate floating loot
                 lootItems.forEach(item => item.mesh.rotation.y += 0.03);
 
                 // Update Bullets
@@ -735,29 +987,33 @@
                     b.mesh.position.z += b.vz;
                     b.life--;
 
-                    // Check obstacle hit
-                    let hit = false;
-                    for (let oIdx = obstacles.length - 1; oIdx >= 0; oIdx--) {
-                        const ob = obstacles[oIdx];
-                        if (Math.abs(b.mesh.position.x - ob.x) < ob.w / 2 &&
-                            Math.abs(b.mesh.position.z - ob.z) < ob.d / 2 &&
-                            b.mesh.position.y < ob.h) {
-                            ob.hp -= b.damage;
-                            if (ob.hp <= 0) {
-                                scene.remove(ob.mesh);
-                                obstacles.splice(oIdx, 1);
+                    const bGroundY = getTerrainHeight(b.mesh.position.x, b.mesh.position.z);
+                    let hit = b.mesh.position.y < bGroundY;
+
+                    if (!hit) {
+                        for (let oIdx = obstacles.length - 1; oIdx >= 0; oIdx--) {
+                            const ob = obstacles[oIdx];
+                            const obBaseY = getTerrainHeight(ob.x, ob.z);
+                            if (Math.abs(b.mesh.position.x - ob.x) < ob.w / 2 &&
+                                Math.abs(b.mesh.position.z - ob.z) < ob.d / 2 &&
+                                b.mesh.position.y < obBaseY + ob.h) {
+                                ob.hp -= b.damage;
+                                if (ob.hp <= 0) {
+                                    scene.remove(ob.mesh);
+                                    obstacles.splice(oIdx, 1);
+                                }
+                                hit = true;
+                                break;
                             }
-                            hit = true;
-                            break;
                         }
                     }
 
-                    // Check Bot Hit
                     if (!hit && b.fromPlayer) {
                         for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
                             const bot = bots[bIdx];
-                            if (Math.hypot(b.mesh.position.x - bot.x, b.mesh.position.z - bot.z) < 2.2 && b.mesh.position.y < 5.5) {
-                                const isHeadshot = b.mesh.position.y > 3.5;
+                            if (Math.hypot(b.mesh.position.x - bot.x, b.mesh.position.z - bot.z) < 2.2 &&
+                                Math.abs(b.mesh.position.y - (bot.y + 2.8)) < 3.0) {
+                                const isHeadshot = b.mesh.position.y > bot.y + 3.8;
                                 bot.hp -= isHeadshot ? b.damage * 2 : b.damage;
                                 hit = true;
                                 if (bot.hp <= 0) {
@@ -773,10 +1029,9 @@
                         }
                     }
 
-                    // Check Player Hit
                     if (!hit && !b.fromPlayer) {
                         if (Math.hypot(b.mesh.position.x - player.x, b.mesh.position.z - player.z) < 2.0 &&
-                            Math.abs(b.mesh.position.y - (player.y + 2.5)) < 2.8) {
+                            Math.abs(b.mesh.position.y - (player.y + 2.8)) < 2.8) {
                             hit = true;
                             if (player.shield > 0) {
                                 player.shield = Math.max(0, player.shield - b.damage);
@@ -794,25 +1049,26 @@
                         }
                     }
 
-                    if (hit || b.life <= 0 || b.mesh.position.y < 0) {
+                    if (hit || b.life <= 0) {
                         scene.remove(b.mesh);
                         bullets.splice(i, 1);
                     }
                 }
 
-                // Update AI Bots
+                // Update AI Bots on Rolling Terrain
                 bots.forEach(bot => {
                     const dist = Math.hypot(player.x - bot.x, player.z - bot.z);
-                    if (dist < 160) {
+                    if (dist < 220) {
                         const angle = Math.atan2(player.x - bot.x, player.z - bot.z);
                         bot.group.rotation.y = angle + Math.PI;
 
-                        if (dist > 35) {
-                            const bx = Math.sin(angle) * 0.28;
-                            const bz = Math.cos(angle) * 0.28;
+                        if (dist > 40) {
+                            const bx = Math.sin(angle) * 0.32;
+                            const bz = Math.cos(angle) * 0.32;
                             if (!checkCollision(bot.x + bx, bot.z)) bot.x += bx;
                             if (!checkCollision(bot.x, bot.z + bz)) bot.z += bz;
-                            bot.group.position.set(bot.x, 0, bot.z);
+                            bot.y = getTerrainHeight(bot.x, bot.z);
+                            bot.group.position.set(bot.x, bot.y, bot.z);
                         }
 
                         bot.cooldown--;
@@ -822,16 +1078,21 @@
                                 new THREE.SphereGeometry(0.4, 6, 6),
                                 new THREE.MeshBasicMaterial({ color: 0xff9800 })
                             );
-                            mesh.position.set(bot.x, 3.0, bot.z);
+                            mesh.position.set(bot.x, bot.y + 3.2, bot.z);
                             scene.add(mesh);
+
+                            const dy = (player.y + 2.8) - (bot.y + 3.2);
+                            const horizDist = Math.max(1, Math.hypot(player.x - bot.x, player.z - bot.z));
+                            const pitchAngle = Math.atan2(dy, horizDist);
+
                             bullets.push({
                                 mesh,
-                                vx: Math.sin(angle) * 2.4,
-                                vy: 0,
-                                vz: Math.cos(angle) * 2.4,
+                                vx: Math.sin(angle) * Math.cos(pitchAngle) * 2.6,
+                                vy: Math.sin(pitchAngle) * 2.6,
+                                vz: Math.cos(angle) * Math.cos(pitchAngle) * 2.6,
                                 damage: 15,
                                 fromPlayer: false,
-                                life: 80
+                                life: 95
                             });
                         }
                     }
