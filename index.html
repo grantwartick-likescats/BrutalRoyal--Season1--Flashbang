@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Battle Royale - Realistic Gear & POIs</title>
+    <title>3D Battle Royale - Realistic POIs & Dense Forests</title>
     <style>
         body {
             margin: 0;
@@ -162,7 +162,7 @@
 
     <div id="menu-overlay">
         <h1>Mini Battle Royale</h1>
-        <p>Drop into realistic POIs, loot Fortnite chests, and battle bots!</p>
+        <p>Explore realistic POIs, dense forests, and battle rival bots!</p>
         <button id="play-btn">PLAY BATTLE ROYALE</button>
     </div>
 
@@ -187,7 +187,7 @@
         Click Screen: Lock Mouse Aim<br>
         Arrow Keys / WASD: Move & Steer<br>
         Spacebar: Jump / Glider Toggle<br>
-        Left Click: Shoot / Harvest<br>
+        Left Click: Shoot / Harvest Trees & Buildings<br>
         E: Open Chest / Loot<br>
         Q: Build Wood Wall (10 Wood)<br>
         R: Reload | 1-4: Switch Weapon
@@ -237,9 +237,9 @@
             ];
             for (const p of poiCenters) {
                 const dist = Math.hypot(x - p.x, z - p.z);
-                if (dist < 130) return 0;
-                if (dist < 190) {
-                    const blend = (dist - 130) / 60;
+                if (dist < 140) return 0;
+                if (dist < 200) {
+                    const blend = (dist - 140) / 60;
                     return blend * rawHillHeight(x, z);
                 }
             }
@@ -362,16 +362,54 @@
             busGroup.position.set(-720, 185, -120);
 
             pois.forEach(poi => {
-                const pad = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ color: poi.ground }));
+                const pad = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), new THREE.MeshStandardMaterial({ color: poi.ground }));
                 pad.rotation.x = -Math.PI / 2; pad.position.set(poi.x, 0.15, poi.z); scene.add(pad);
                 
-                // Realistic multi-tier POI buildings with walls and pitched roofs
-                addRealisticBuilding(poi.x - 70, poi.z - 70, 36, 16, 12, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x + 70, poi.z - 70, 36, 16, 12, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x - 70, poi.z + 70, 36, 16, 12, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x + 70, poi.z + 70, 36, 16, 12, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x, poi.z, 28, 32, 28, poi.wallColor, poi.roofColor, 300);
+                // Realistic multi-tier POI complex styled like named Fortnite locations
+                addRealisticBuilding(poi.x - 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x - 75, poi.z + 75, 38, 16, 14, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 75, poi.z + 75, 38, 16, 14, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x, poi.z, 32, 34, 32, poi.wallColor, poi.roofColor, 350);
             });
+
+            // Generate over 500 realistic 3D Pine & Oak trees across the island
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+            const pineMat = new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.8 });
+            const oakMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.8 });
+
+            for (let i = 0; i < 520; i++) {
+                const tx = (Math.random() - 0.5) * 1500;
+                const tz = (Math.random() - 0.5) * 1500;
+
+                let inPoi = false;
+                for (const p of pois) {
+                    if (Math.hypot(tx - p.x, tz - p.z) < 145) { inPoi = true; break; }
+                }
+                if (inPoi) continue;
+
+                const ty = getTerrainHeight(tx, tz);
+                const treeGroup = new THREE.Group();
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.4, 8, 8), trunkMat);
+                trunk.position.y = 4; trunk.castShadow = true;
+                treeGroup.add(trunk);
+
+                if (Math.random() < 0.65) {
+                    const c1 = new THREE.Mesh(new THREE.ConeGeometry(5.5, 9, 8), pineMat);
+                    c1.position.y = 9.5; c1.castShadow = true;
+                    const c2 = new THREE.Mesh(new THREE.ConeGeometry(4.0, 8, 8), pineMat);
+                    c2.position.y = 14.5; c2.castShadow = true;
+                    treeGroup.add(c1, c2);
+                } else {
+                    const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(6.0, 1), oakMat);
+                    crown.position.y = 10.5; crown.castShadow = true;
+                    treeGroup.add(crown);
+                }
+
+                treeGroup.position.set(tx, ty, tz);
+                scene.add(treeGroup);
+                obstacles.push({ mesh: treeGroup, x: tx, z: tz, w: 3.5, d: 3.5, h: 16, hp: 100, isTree: true });
+            }
 
             function spawnFortniteChest(x, z) {
                 const y = getTerrainHeight(x, z);
@@ -404,12 +442,11 @@
             }
         }
 
-        // Realistic multi-tier POI buildings with walls and roofs
-        function addRealisticBuilding(x, z, w, h, d, wallColor, roofColor, hp = 150) {
+        function addRealisticBuilding(x, z, w, h, d, wallColor, roofColor, hp = 180) {
             const groundY = getTerrainHeight(x, z);
             const buildingGroup = new THREE.Group();
             
-            const walls = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.8 }));
+            const walls = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.75 }));
             walls.position.y = h / 2; walls.castShadow = true; walls.receiveShadow = true;
 
             const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.75, h * 0.5, 4), new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.7 }));
@@ -421,13 +458,11 @@
             obstacles.push({ mesh: buildingGroup, x, z, w, d, h: h + (h * 0.5), hp, isTree: false });
         }
 
-        // Detailed 3D Realistic Weapons & Ammo on the Ground
         function spawnRealisticGroundLoot(x, z, weapon, ammoType) {
             const y = getTerrainHeight(x, z);
             const group = new THREE.Group();
 
             if (weapon) {
-                // Realistic rifle/shotgun body model on the floor
                 const body = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.4, 0.8), new THREE.MeshStandardMaterial({ color: weapon.rarityColor, roughness: 0.3 }));
                 const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.8), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8 }));
                 barrel.rotation.z = Math.PI / 2; barrel.position.set(1.8, 0, 0);
@@ -435,7 +470,6 @@
                 stock.position.set(-1.4, -0.1, 0);
                 group.add(body, barrel, stock);
             } else {
-                // Ammo box model
                 const ammoBox = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 1.8), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.5 }));
                 group.add(ammoBox);
             }
@@ -584,7 +618,7 @@
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     const ob = obstacles[i];
                     if (Math.abs(hx - ob.x) < ob.w / 2 + 5 && Math.abs(hz - ob.z) < ob.d / 2 + 5) {
-                        ob.hp -= 35; player.wood += 20;
+                        ob.hp -= 35; player.wood += ob.isTree ? 25 : 20;
                         if (ob.hp <= 0) { scene.remove(ob.mesh); obstacles.splice(i, 1); }
                         updateHUD(); break;
                     }
@@ -670,7 +704,6 @@
                 camera.position.set(player.x + Math.sin(player.yaw) * 14, player.y + 6.5, player.z + Math.cos(player.yaw) * 14);
                 camera.lookAt(player.x - Math.sin(player.yaw) * 20, player.y + 3.5, player.z - Math.cos(player.yaw) * 20);
 
-                // --- RESTORED INTERACTION PROMPT LOGIC ---
                 const promptEl = document.getElementById("prompt");
                 let showPrompt = false;
                 for (const c of chests) {
@@ -689,7 +722,6 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
-                // Bullet Loop
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     const b = bullets[i];
                     b.mesh.position.add(new THREE.Vector3(b.vx, b.vy, b.vz)); b.life--;
