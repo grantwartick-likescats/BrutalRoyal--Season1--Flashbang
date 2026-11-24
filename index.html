@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Battle Royale - Realistic POIs & Dense Forests</title>
+    <title>Brutal Royale, Season 1, Flashbang</title>
     <style>
         body {
             margin: 0;
@@ -31,7 +31,7 @@
         .hp { color: #4ade80; }
         .wood { color: #e7c697; }
         .poi { color: #facc15; font-size: 14px; letter-spacing: 0.5px; }
-        #ammo-row { display: flex; gap: 14px; font-size: 12px; color: #cbd5e1; }
+        #ammo-row { display: flex; gap: 12px; font-size: 12px; color: #cbd5e1; }
         #crosshair {
             position: absolute;
             top: 50%; left: 50%;
@@ -60,14 +60,14 @@
             pointer-events: none;
         }
         .slot {
-            padding: 8px 12px;
+            padding: 8px 10px;
             background: rgba(15, 20, 28, 0.85);
             border: 2px solid #475569;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             text-align: center;
-            min-width: 115px;
+            min-width: 95px;
         }
         .slot.active {
             border-color: #facc15;
@@ -128,12 +128,13 @@
             z-index: 10;
         }
         h1 {
-            font-size: 48px;
+            font-size: 44px;
             margin-bottom: 10px;
             color: #facc15;
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 0 4px 20px rgba(250, 204, 21, 0.5);
+            text-align: center;
         }
         p {
             color: #94a3b8;
@@ -161,8 +162,8 @@
 <body>
 
     <div id="menu-overlay">
-        <h1>Mini Battle Royale</h1>
-        <p>Explore realistic POIs, dense forests, and battle rival bots!</p>
+        <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8;">Season 1: Flashbang</span></h1>
+        <p>Drop in, wield rare exotic weapons like the Flashbang Pistol & Shock SMG, and survive!</p>
         <button id="play-btn">PLAY BATTLE ROYALE</button>
     </div>
 
@@ -179,6 +180,7 @@
             <span>Shells: <b id="ammo-shells">0</b></span>
             <span>Light: <b id="ammo-light">0</b></span>
             <span>Heavy: <b id="ammo-heavy">0</b></span>
+            <span>Rockets: <b id="ammo-rockets">0</b></span>
         </div>
     </div>
 
@@ -190,7 +192,7 @@
         Left Click: Shoot / Harvest Trees & Buildings<br>
         E: Open Chest / Loot<br>
         Q: Build Wood Wall (10 Wood)<br>
-        R: Reload | 1-4: Switch Weapon
+        R: Reload | 1-7: Switch Weapon
     </div>
 
     <div id="crosshair"></div>
@@ -202,6 +204,9 @@
         <div class="slot" id="slot-1">[2] Empty</div>
         <div class="slot" id="slot-2">[3] Empty</div>
         <div class="slot" id="slot-3">[4] Empty</div>
+        <div class="slot" id="slot-4">[5] Empty</div>
+        <div class="slot" id="slot-5">[6] Empty</div>
+        <div class="slot" id="slot-6">[7] Empty</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -285,19 +290,28 @@
             { name: "Uncommon", hex: "#4ade80", color: 0x4ade80, mult: 1.1 },
             { name: "Rare", hex: "#38bdf8", color: 0x38bdf8, mult: 1.22 },
             { name: "Epic", hex: "#c084fc", color: 0xc084fc, mult: 1.35 },
-            { name: "Legendary", hex: "#fb923c", color: 0xfb923c, mult: 1.5 }
+            { name: "Legendary", hex: "#fb923c", color: 0xfb923c, mult: 1.5 },
+            { name: "Exotic", hex: "#06b6d4", color: 0x06b6d4, mult: 1.8 } // Custom Exotic Tier
         ];
 
+        // Expanded Weapons including Custom Exotics
         const baseWeapons = [
             { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 28, rate: 190, speed: 5.5, pellets: 1, spread: 0.02, auto: true },
             { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 22, rate: 850, speed: 4.5, pellets: 6, spread: 0.14, auto: false },
             { id: 2, name: "Tactical SMG", ammo: "light", mag: 35, dmg: 17, rate: 90, speed: 5.0, pellets: 1, spread: 0.05, auto: true },
-            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 115, rate: 1200, speed: 8.5, pellets: 1, spread: 0.0, auto: false }
+            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 115, rate: 1200, speed: 8.5, pellets: 1, spread: 0.0, auto: false },
+            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 74, rate: 750, speed: 5.2, pellets: 1, spread: 0.02, auto: false },
+            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 25, rate: 170, speed: 5.2, pellets: 1, spread: 0.03, auto: false },
+            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 120, rate: 1500, speed: 3.5, pellets: 1, spread: 0.0, auto: false, explosive: true },
+            // --- Custom Season 1 Exotics ---
+            { id: 7, name: "Flashbang Pistol", ammo: "light", mag: 12, dmg: 45, rate: 220, speed: 6.0, pellets: 1, spread: 0.01, auto: false, flashbang: true },
+            { id: 8, name: "Shock SMG", ammo: "light", mag: 40, dmg: 24, rate: 70, speed: 5.8, pellets: 1, spread: 0.03, auto: true, shock: true }
         ];
 
         function makeWeapon(typeIdx, rarityIdx) {
             const b = baseWeapons[typeIdx];
-            const r = rarities[rarityIdx];
+            // Force Exotic rarity for custom weapons if specified
+            const r = b.flashbang || b.shock ? rarities[5] : rarities[rarityIdx];
             return { ...b, rarityName: r.name, rarityHex: r.hex, rarityColor: r.color, damage: Math.round(b.dmg * r.mult), currentMag: b.mag };
         }
 
@@ -306,8 +320,8 @@
         const player = {
             x: -720, y: 185, z: -120, vy: 0, yaw: -Math.PI / 2, pitch: -0.2, speed: 0.8,
             hp: 100, shield: 100, wood: 0, elims: 0, onGround: false,
-            inventory: [null, null, null, null], slot: 0,
-            ammo: { medium: 0, shells: 0, light: 0, heavy: 0 }, reloading: false
+            inventory: [null, null, null, null, null, null, null], slot: 0,
+            ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 }, reloading: false
         };
 
         let lastShot = 0;
@@ -357,15 +371,14 @@
 
             player.x = -720; player.y = 185; player.z = -120; player.vy = 0;
             player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0;
-            player.inventory = [null, null, null, null]; player.slot = 0;
-            player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0 };
+            player.inventory = [null, null, null, null, null, null, null]; player.slot = 0;
+            player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 };
             busGroup.position.set(-720, 185, -120);
 
             pois.forEach(poi => {
                 const pad = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), new THREE.MeshStandardMaterial({ color: poi.ground }));
                 pad.rotation.x = -Math.PI / 2; pad.position.set(poi.x, 0.15, poi.z); scene.add(pad);
                 
-                // Realistic multi-tier POI complex styled like named Fortnite locations
                 addRealisticBuilding(poi.x - 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
                 addRealisticBuilding(poi.x + 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
                 addRealisticBuilding(poi.x - 75, poi.z + 75, 38, 16, 14, poi.wallColor, poi.roofColor);
@@ -373,7 +386,7 @@
                 addRealisticBuilding(poi.x, poi.z, 32, 34, 32, poi.wallColor, poi.roofColor, 350);
             });
 
-            // Generate over 500 realistic 3D Pine & Oak trees across the island
+            // Dense Forests (520+ Trees)
             const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
             const pineMat = new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.8 });
             const oakMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.8 });
@@ -431,16 +444,44 @@
             pois.forEach(p => { spawnFortniteChest(p.x - 45, p.z - 45); spawnFortniteChest(p.x + 45, p.z + 45); });
             spawnFortniteChest(0, -25); spawnFortniteChest(0, 25);
 
-            for (let i = 0; i < 50; i++) {
-                const x = (Math.random() - 0.5) * 1400; const z = (Math.random() - 0.5) * 1400;
-                spawnRealisticGroundLoot(x, z, makeWeapon(Math.floor(Math.random() * baseWeapons.length), Math.random() < 0.6 ? 0 : 1), null);
-            }
-            const ammoKeys = ["medium", "shells", "light", "heavy"];
             for (let i = 0; i < 60; i++) {
+                const x = (Math.random() - 0.5) * 1400; const z = (Math.random() - 0.5) * 1400;
+                // Include standard weapons + chance for our custom Exotics (indices 7 and 8)
+                const wType = Math.random() < 0.15 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * 7);
+                spawnRealisticGroundLoot(x, z, makeWeapon(wType, Math.random() < 0.6 ? 0 : 1), null);
+            }
+            const ammoKeys = ["medium", "shells", "light", "heavy", "rockets"];
+            for (let i = 0; i < 70; i++) {
                 const x = (Math.random() - 0.5) * 1400; const z = (Math.random() - 0.5) * 1400;
                 spawnRealisticGroundLoot(x, z, null, ammoKeys[Math.floor(Math.random() * ammoKeys.length)]);
             }
+
+            for (let i = 0; i < 12; i++) spawnBot();
         }
+
+        function spawnBot() {
+            if (gameState !== 'PLAYING') return;
+            const x = (Math.random() - 0.5) * 1350;
+            const z = (Math.random() - 0.5) * 1350;
+            const y = getTerrainHeight(x, z);
+
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.4, 1.0), new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
+            body.position.y = 2.6; body.castShadow = true;
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.85, 12, 12), new THREE.MeshStandardMaterial({ color: 0x7f1d1d }));
+            head.position.y = 4.5;
+            group.add(body, head);
+            group.position.set(x, y, z);
+            scene.add(group);
+
+            bots.push({
+                group, x, y, z,
+                hp: 200,
+                weapon: makeWeapon(Math.floor(Math.random() * baseWeapons.length), 1),
+                cooldown: 60
+            });
+        }
+        setInterval(() => { if (gameState === 'PLAYING' && bots.length < 15) spawnBot(); }, 3000);
 
         function addRealisticBuilding(x, z, w, h, d, wallColor, roofColor, hp = 180) {
             const groundY = getTerrainHeight(x, z);
@@ -501,12 +542,13 @@
             document.getElementById("ammo-shells").innerText = player.ammo.shells;
             document.getElementById("ammo-light").innerText = player.ammo.light;
             document.getElementById("ammo-heavy").innerText = player.ammo.heavy;
+            document.getElementById("ammo-rockets").innerText = player.ammo.rockets;
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 7; i++) {
                 const w = player.inventory[i];
                 const el = document.getElementById(`slot-${i}`);
                 if (w) {
-                    el.innerHTML = `[${i + 1}] ${w.rarityName} ${w.name}<br><small>${w.currentMag}/${w.mag}</small>`;
+                    el.innerHTML = `[${i + 1}] ${w.name}<br><small>${w.currentMag}/${w.mag}</small>`;
                     el.style.borderColor = i === player.slot ? "#facc15" : w.rarityHex;
                 } else {
                     el.innerHTML = `[${i + 1}] Empty`;
@@ -537,7 +579,7 @@
             const k = e.key.toLowerCase();
             keys[k] = true; keys[e.code] = true;
 
-            if (k >= '1' && k <= '4') { player.slot = parseInt(k) - 1; player.reloading = false; updateHUD(); }
+            if (k >= '1' && k <= '7') { player.slot = parseInt(k) - 1; player.reloading = false; updateHUD(); }
 
             if (e.code === "Space") {
                 const banner = document.getElementById("banner");
@@ -560,7 +602,9 @@
                 if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
                     c.opened = true;
                     c.mesh.children[0].material.color.setHex(0x292524);
-                    const gun = makeWeapon(Math.floor(Math.random() * baseWeapons.length), Math.random() < 0.5 ? 2 : 3);
+                    // Chests have high chance to drop our custom Exotics!
+                    const gunType = Math.random() < 0.4 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * baseWeapons.length);
+                    const gun = makeWeapon(gunType, 3);
                     spawnRealisticGroundLoot(c.x + 3, c.z + 3, gun, null);
                     spawnRealisticGroundLoot(c.x - 3, c.z + 3, null, gun.ammo);
                     player.shield = Math.min(100, player.shield + 25);
@@ -629,11 +673,11 @@
             if (now - lastShot < w.rate) return; lastShot = now;
             w.currentMag--; updateHUD();
 
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.35, 6, 6), new THREE.MeshBasicMaterial({ color: w.rarityColor }));
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(w.explosive ? 0.8 : 0.35, 6, 6), new THREE.MeshBasicMaterial({ color: w.rarityColor }));
             mesh.position.set(player.x, player.y + 3.4, player.z); scene.add(mesh);
             bullets.push({
                 mesh, vx: -Math.sin(player.yaw) * w.speed, vy: 0, vz: -Math.cos(player.yaw) * w.speed,
-                damage: w.damage, fromPlayer: true, life: 100
+                damage: w.damage, fromPlayer: true, life: 100, flashbang: w.flashbang, shock: w.shock
             });
         }
 
@@ -722,13 +766,78 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
+                // Bullet & Projectile Logic
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     const b = bullets[i];
                     b.mesh.position.add(new THREE.Vector3(b.vx, b.vy, b.vz)); b.life--;
-                    if (b.mesh.position.y < getTerrainHeight(b.mesh.position.x, b.mesh.position.z) || b.life <= 0) {
+
+                    let hit = b.mesh.position.y < getTerrainHeight(b.mesh.position.x, b.mesh.position.z) || b.life <= 0;
+
+                    if (!hit && b.fromPlayer) {
+                        for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
+                            const bot = bots[bIdx];
+                            if (Math.hypot(b.mesh.position.x - bot.x, b.mesh.position.z - bot.z) < 2.5) {
+                                bot.hp -= b.damage;
+                                hit = true;
+                                if (b.flashbang) {
+                                    // Flashbang visual effect stub
+                                    bot.hp -= 20; 
+                                }
+                                if (bot.hp <= 0) {
+                                    scene.remove(bot.group);
+                                    spawnRealisticGroundLoot(bot.x, bot.z, bot.weapon, null);
+                                    bots.splice(bIdx, 1);
+                                    player.elims++;
+                                    player.shield = Math.min(100, player.shield + 50);
+                                    updateHUD();
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!hit && !b.fromPlayer) {
+                        if (Math.hypot(b.mesh.position.x - player.x, b.mesh.position.z - player.z) < 2.2) {
+                            hit = true;
+                            if (player.shield > 0) player.shield = Math.max(0, player.shield - b.damage);
+                            else player.hp -= b.damage;
+                            updateHUD();
+                        }
+                    }
+
+                    if (hit) {
                         scene.remove(b.mesh); bullets.splice(i, 1);
                     }
                 }
+
+                bots.forEach(bot => {
+                    const dist = Math.hypot(player.x - bot.x, player.z - bot.z);
+                    if (dist < 260) {
+                        const angle = Math.atan2(player.x - bot.x, player.z - bot.z);
+                        bot.group.rotation.y = angle + Math.PI;
+
+                        if (dist > 35) {
+                            const bx = Math.sin(angle) * 0.35;
+                            const bz = Math.cos(angle) * 0.35;
+                            if (!checkCollision(bot.x + bx, bot.z)) bot.x += bx;
+                            if (!checkCollision(bot.x, bot.z + bz)) bot.z += bz;
+                            bot.y = getTerrainHeight(bot.x, bot.z);
+                            bot.group.position.set(bot.x, bot.y, bot.z);
+                        }
+
+                        bot.cooldown--;
+                        if (bot.cooldown <= 0) {
+                            bot.cooldown = 65;
+                            const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.4, 6, 6), new THREE.MeshBasicMaterial({ color: 0xff9800 }));
+                            mesh.position.set(bot.x, bot.y + 3.2, bot.z);
+                            scene.add(mesh);
+                            bullets.push({
+                                mesh, vx: Math.sin(angle) * 2.8, vy: 0, vz: Math.cos(angle) * 2.8,
+                                damage: 15, fromPlayer: false, life: 80
+                            });
+                        }
+                    }
+                });
 
                 if (player.hp <= 0) {
                     gameState = 'MENU';
