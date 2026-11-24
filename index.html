@@ -117,7 +117,7 @@
             pointer-events: none;
             display: none;
         }
-        #menu-overlay {
+        .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -140,8 +140,9 @@
             color: #94a3b8;
             font-size: 16px;
             margin-bottom: 30px;
+            text-align: center;
         }
-        #play-btn {
+        .action-btn {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
             border: none;
@@ -153,18 +154,28 @@
             box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
             transition: transform 0.1s, box-shadow 0.1s;
         }
-        #play-btn:hover {
+        .action-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 30px rgba(245, 158, 11, 0.7);
+        }
+        #death-screen {
+            display: none;
+            background: rgba(15, 23, 42, 0.92);
         }
     </style>
 </head>
 <body>
 
-    <div id="menu-overlay">
+    <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8;">Season 1: Flashbang</span></h1>
-        <p>Drop in, hold shoot for continuous fire, aim up and down freely, and hunt for super rare Exotics!</p>
-        <button id="play-btn">PLAY BATTLE ROYALE</button>
+        <p>Aim Assist Enabled, True 3D POIs, and Super Rare Exotics Await!</p>
+        <button id="play-btn" class="action-btn">PLAY BATTLE ROYALE</button>
+    </div>
+
+    <div id="death-screen" class="overlay-screen">
+        <h1 style="color: #ef4444; font-size: 56px; text-shadow: 0 4px 25px rgba(239, 68, 68, 0.6);">YOU DIED</h1>
+        <p id="death-stats" style="font-size: 18px; color: #cbd5e1; margin-bottom: 24px;">You were eliminated in the storm.</p>
+        <button id="respawn-btn" class="action-btn">PLAY AGAIN</button>
     </div>
 
     <div id="hud">
@@ -186,10 +197,10 @@
 
     <div id="controls">
         <b>Controls:</b><br>
-        Click Screen: Lock Mouse Aim (Look Up/Down)<br>
+        Click Screen: Lock Mouse Aim<br>
         Arrow Keys / WASD: Move & Steer<br>
         Spacebar: Jump / Glider Toggle<br>
-        Hold Left Click: Continuous Fire / Harvest<br>
+        Hold Left Click: Continuous Fire (Auto-Aim Assist)<br>
         E: Open Chest / Loot<br>
         Q: Build Wood Wall (10 Wood)<br>
         R: Reload | 1-7: Switch Weapon
@@ -291,20 +302,20 @@
             { name: "Rare", hex: "#38bdf8", color: 0x38bdf8, mult: 1.22 },
             { name: "Epic", hex: "#c084fc", color: 0xc084fc, mult: 1.35 },
             { name: "Legendary", hex: "#fb923c", color: 0xfb923c, mult: 1.5 },
-            { name: "Exotic", hex: "#06b6d4", color: 0x06b6d4, mult: 1.9 }
+            { name: "Exotic", hex: "#06b6d4", color: 0x06b6d4, mult: 2.0 }
         ];
 
         const baseWeapons = [
-            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 28, rate: 160, speed: 6.0, pellets: 1, spread: 0.02, auto: true },
-            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 22, rate: 750, speed: 5.0, pellets: 6, spread: 0.12, auto: false },
-            { id: 2, name: "Tactical SMG", ammo: "light", mag: 35, dmg: 17, rate: 85, speed: 5.5, pellets: 1, spread: 0.04, auto: true },
-            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 115, rate: 1100, speed: 9.0, pellets: 1, spread: 0.0, auto: false },
-            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 74, rate: 650, speed: 5.5, pellets: 1, spread: 0.02, auto: false },
-            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 25, rate: 140, speed: 5.5, pellets: 1, spread: 0.02, auto: true },
-            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 120, rate: 1400, speed: 4.0, pellets: 1, spread: 0.0, auto: false, explosive: true },
+            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 32, rate: 150, speed: 6.2, pellets: 1, spread: 0.015, auto: true },
+            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 25, rate: 700, speed: 5.2, pellets: 6, spread: 0.1, auto: false },
+            { id: 2, name: "Tactical SMG", ammo: "light", mag: 40, dmg: 19, rate: 75, speed: 5.8, pellets: 1, spread: 0.03, auto: true },
+            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 130, rate: 1000, speed: 9.5, pellets: 1, spread: 0.0, auto: false },
+            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 80, rate: 600, speed: 5.8, pellets: 1, spread: 0.02, auto: false },
+            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 28, rate: 130, speed: 5.8, pellets: 1, spread: 0.02, auto: true },
+            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 135, rate: 1300, speed: 4.2, pellets: 1, spread: 0.0, auto: false, explosive: true },
             // Super Rare Custom Exotics
-            { id: 7, name: "Flashbang Pistol", ammo: "light", mag: 12, dmg: 55, rate: 180, speed: 6.5, pellets: 1, spread: 0.01, auto: true, flashbang: true },
-            { id: 8, name: "Shock SMG", ammo: "light", mag: 45, dmg: 28, rate: 60, speed: 6.2, pellets: 1, spread: 0.02, auto: true, shock: true }
+            { id: 7, name: "Flashbang Pistol", ammo: "light", mag: 15, dmg: 60, rate: 160, speed: 6.8, pellets: 1, spread: 0.01, auto: true, flashbang: true },
+            { id: 8, name: "Shock SMG", ammo: "light", mag: 50, dmg: 32, rate: 55, speed: 6.5, pellets: 1, spread: 0.02, auto: true, shock: true }
         ];
 
         function makeWeapon(typeIdx, rarityIdx) {
@@ -377,11 +388,12 @@
                 const pad = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), new THREE.MeshStandardMaterial({ color: poi.ground }));
                 pad.rotation.x = -Math.PI / 2; pad.position.set(poi.x, 0.15, poi.z); scene.add(pad);
                 
-                addRealisticBuilding(poi.x - 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x + 75, poi.z - 75, 38, 16, 14, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x - 75, poi.z + 75, 38, 16, 14, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x + 75, poi.z + 75, 38, 16, 14, poi.wallColor, poi.roofColor);
-                addRealisticBuilding(poi.x, poi.z, 32, 34, 32, poi.wallColor, poi.roofColor, 350);
+                // Realistic Pixel-for-Pixel Complex POI Structures
+                addRealisticBuilding(poi.x - 75, poi.z - 75, 42, 18, 16, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 75, poi.z - 75, 42, 18, 16, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x - 75, poi.z + 75, 42, 18, 16, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 75, poi.z + 75, 42, 18, 16, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x, poi.z, 36, 38, 36, poi.wallColor, poi.roofColor, 400);
             });
 
             // Dense Forests (520+ Trees)
@@ -518,8 +530,12 @@
             lootItems.push({ mesh: group, x, y, z, weapon, ammoType });
         }
 
-        document.getElementById("play-btn").addEventListener("click", () => {
+        document.getElementById("play-btn").addEventListener("click", startGame);
+        document.getElementById("respawn-btn").addEventListener("click", startGame);
+
+        function startGame() {
             document.getElementById("menu-overlay").style.display = "none";
+            document.getElementById("death-screen").style.display = "none";
             document.getElementById("hud").style.display = "flex";
             document.getElementById("crosshair").style.display = "block";
             document.getElementById("hotbar").style.display = "flex";
@@ -529,7 +545,7 @@
             renderer.domElement.requestPointerLock();
             initGameWorld();
             gameState = 'BUS';
-        });
+        }
 
         function updateHUD() {
             document.getElementById("elims").innerText = player.elims;
@@ -559,7 +575,6 @@
             if (activeW) gunMesh.material.color.setHex(activeW.rarityColor);
         }
 
-        // --- FULL MOUSE LOOK (YAW & PITCH) ---
         window.addEventListener("mousemove", (e) => {
             if (document.pointerLockElement === renderer.domElement && gameState !== 'MENU') {
                 player.yaw -= e.movementX * 0.0025;
@@ -568,7 +583,7 @@
         });
 
         renderer.domElement.addEventListener("click", () => {
-            if (gameState !== 'MENU' && document.pointerLockElement !== renderer.domElement) {
+            if (gameState !== 'MENU' && gameState !== 'DEAD' && document.pointerLockElement !== renderer.domElement) {
                 renderer.domElement.requestPointerLock();
             }
         });
@@ -601,8 +616,7 @@
                 if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
                     c.opened = true;
                     c.mesh.children[0].material.color.setHex(0x292524);
-                    // Super rare exotics from chests (~12% drop rate)
-                    const gunType = Math.random() < 0.12 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * baseWeapons.length);
+                    const gunType = Math.random() < 0.15 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * baseWeapons.length);
                     const gun = makeWeapon(gunType, 3);
                     spawnRealisticGroundLoot(c.x + 3, c.z + 3, gun, null);
                     spawnRealisticGroundLoot(c.x - 3, c.z + 3, null, gun.ammo);
@@ -611,7 +625,7 @@
                 }
             }
             for (let i = lootItems.length - 1; i >= 0; i--) {
-                const item = lootItems[i];
+                const item = lootItems.get ? lootItems[i] : lootItems[i];
                 if (Math.hypot(player.x - item.x, player.z - item.z) < 12) {
                     if (item.ammoType) player.ammo[item.ammoType] += 24;
                     else if (item.weapon) {
@@ -675,13 +689,27 @@
             const mesh = new THREE.Mesh(new THREE.SphereGeometry(w.explosive ? 0.8 : 0.35, 6, 6), new THREE.MeshBasicMaterial({ color: w.rarityColor }));
             mesh.position.set(player.x, player.y + 3.4, player.z); scene.add(mesh);
             
-            // Vector calculation utilizing pitch (looking up and down) for accurate aiming
             const cosPitch = Math.cos(player.pitch);
+            let vx = -Math.sin(player.yaw) * cosPitch * w.speed;
+            let vy = Math.sin(player.pitch) * w.speed;
+            let vz = -Math.cos(player.yaw) * cosPitch * w.speed;
+
+            // --- AIM ASSIST MECHANIC ---
+            // Automatically curves bullet trajectory slightly toward nearest bot if within threshold
+            let nearestBot = null;
+            let minDist = 70;
+            bots.forEach(bot => {
+                const dist = Math.hypot(bot.x - player.x, bot.z - player.z);
+                if (dist < minDist) { minDist = dist; nearestBot = bot; }
+            });
+            if (nearestBot) {
+                const targetAngle = Math.atan2(nearestBot.x - player.x, nearestBot.z - player.z);
+                vx += (-Math.sin(targetAngle) * w.speed - vx) * 0.35;
+                vz += (-Math.cos(targetAngle) * w.speed - vz) * 0.35;
+            }
+
             bullets.push({
-                mesh,
-                vx: -Math.sin(player.yaw) * cosPitch * w.speed,
-                vy: Math.sin(player.pitch) * w.speed,
-                vz: -Math.cos(player.yaw) * cosPitch * w.speed,
+                mesh, vx, vy, vz,
                 damage: w.damage, fromPlayer: true, life: 100, flashbang: w.flashbang, shock: w.shock
             });
         }
@@ -705,9 +733,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            if (gameState === 'MENU') { renderer.render(scene, camera); return; }
+            if (gameState === 'MENU' || gameState === 'DEAD') { renderer.render(scene, camera); return; }
 
-            // Continuous firing when holding down left click
             if (gameState === 'PLAYING' && isMouseDown) {
                 shootOrHarvest();
             }
@@ -756,7 +783,6 @@
 
                 playerGroup.position.set(player.x, player.y, player.z); playerGroup.rotation.y = player.yaw;
                 
-                // Dynamic Camera following pitch (looking up and down smoothly)
                 const camDist = 14;
                 const camX = player.x + Math.sin(player.yaw) * camDist * Math.cos(player.pitch);
                 const camZ = player.z + Math.cos(player.yaw) * camDist * Math.cos(player.pitch);
@@ -787,7 +813,6 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
-                // Bullet & Projectile Logic
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     const b = bullets[i];
                     b.mesh.position.add(new THREE.Vector3(b.vx, b.vy, b.vz)); b.life--;
@@ -859,13 +884,15 @@
                 });
 
                 if (player.hp <= 0) {
-                    gameState = 'MENU';
+                    gameState = 'DEAD';
                     document.getElementById("hud").style.display = "none";
                     document.getElementById("crosshair").style.display = "none";
                     document.getElementById("hotbar").style.display = "none";
                     document.getElementById("controls").style.display = "none";
                     document.getElementById("prompt").style.display = "none";
-                    document.getElementById("menu-overlay").style.display = "flex";
+                    document.getElementById("banner").style.display = "none";
+                    document.getElementById("death-stats").innerText = `Eliminations: ${player.elims} | Wood Gathered: ${player.wood}`;
+                    document.getElementById("death-screen").style.display = "flex";
                     document.exitPointerLock();
                 }
             }
