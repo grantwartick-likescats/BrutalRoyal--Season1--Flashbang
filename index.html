@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Battle Royale - Fortnite Style</title>
+    <title>3D Battle Royale - Realistic Gear & POIs</title>
     <style>
         body {
             margin: 0;
@@ -15,8 +15,7 @@
         }
         #hud {
             position: absolute;
-            top: 14px;
-            left: 16px;
+            top: 14px; left: 16px;
             display: none;
             flex-direction: column;
             gap: 6px;
@@ -54,8 +53,7 @@
         }
         #hotbar {
             position: absolute;
-            bottom: 18px;
-            left: 50%;
+            bottom: 18px; left: 50%;
             transform: translateX(-50%);
             display: none;
             gap: 8px;
@@ -78,8 +76,7 @@
         }
         #banner {
             position: absolute;
-            top: 18%;
-            left: 50%;
+            top: 18%; left: 50%;
             transform: translateX(-50%);
             background: rgba(10, 15, 25, 0.85);
             border: 2px solid #facc15;
@@ -96,14 +93,16 @@
             position: absolute;
             top: 62%; left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             border: 1px solid #fff;
-            padding: 6px 16px;
+            padding: 8px 18px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
+            color: #facc15;
             display: none;
             pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         #controls {
             position: absolute;
@@ -163,7 +162,7 @@
 
     <div id="menu-overlay">
         <h1>Mini Battle Royale</h1>
-        <p>Drop in, harvest wood, loot Fortnite-style chests, and eliminate rival bots!</p>
+        <p>Drop into realistic POIs, loot Fortnite chests, and battle bots!</p>
         <button id="play-btn">PLAY BATTLE ROYALE</button>
     </div>
 
@@ -344,10 +343,10 @@
         const bullets = [];
 
         const pois = [
-            { name: "Realities Reign", x: -420, z: -420, ground: 0x581c87, wallColor: 0x7e22ce, spireColor: 0xd8b4fe },
-            { name: "Cursed Cavern", x: 420, z: -420, ground: 0x1e293b, wallColor: 0x334155, spireColor: 0x14b8a6 },
-            { name: "Stone Sanctum", x: -420, z: 420, ground: 0x78716c, wallColor: 0xa8a29e, spireColor: 0xe7e5e4 },
-            { name: "Busy Bay", x: 420, z: 420, ground: 0xd97706, wallColor: 0xdc2626, spireColor: 0x0284c7 }
+            { name: "Realities Reign", x: -420, z: -420, ground: 0x581c87, wallColor: 0x7e22ce, roofColor: 0x4c1d95 },
+            { name: "Cursed Cavern", x: 420, z: -420, ground: 0x1e293b, wallColor: 0x334155, roofColor: 0x0f172a },
+            { name: "Stone Sanctum", x: -420, z: 420, ground: 0x78716c, wallColor: 0xa8a29e, roofColor: 0x44403c },
+            { name: "Busy Bay", x: 420, z: 420, ground: 0xd97706, wallColor: 0xdc2626, roofColor: 0x991b1b }
         ];
 
         function initGameWorld() {
@@ -363,44 +362,28 @@
             busGroup.position.set(-720, 185, -120);
 
             pois.forEach(poi => {
-                const pad = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshStandardMaterial({ color: poi.ground }));
+                const pad = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ color: poi.ground }));
                 pad.rotation.x = -Math.PI / 2; pad.position.set(poi.x, 0.15, poi.z); scene.add(pad);
                 
-                addBuilding(poi.x - 65, poi.z - 65, 32, 14, 10, poi.wallColor);
-                addBuilding(poi.x + 65, poi.z - 65, 32, 14, 10, poi.wallColor);
-                addBuilding(poi.x - 65, poi.z + 65, 32, 14, 10, poi.wallColor);
-                addBuilding(poi.x + 65, poi.z + 65, 32, 14, 10, poi.wallColor);
-                addBuilding(poi.x, poi.z, 24, 28, 24, poi.spireColor, 300);
+                // Realistic multi-tier POI buildings with walls and pitched roofs
+                addRealisticBuilding(poi.x - 70, poi.z - 70, 36, 16, 12, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 70, poi.z - 70, 36, 16, 12, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x - 70, poi.z + 70, 36, 16, 12, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x + 70, poi.z + 70, 36, 16, 12, poi.wallColor, poi.roofColor);
+                addRealisticBuilding(poi.x, poi.z, 28, 32, 28, poi.wallColor, poi.roofColor, 300);
             });
 
-            // Iconic Fortnite-Style Treasure Chests (Blue-Wood Body + Gold Metal Straps + Glowing Lock)
             function spawnFortniteChest(x, z) {
                 const y = getTerrainHeight(x, z);
                 const chestGroup = new THREE.Group();
-                
-                const baseMesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(4.4, 2.8, 3.2), 
-                    new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.5 }) // Blue wood chest body
-                );
-                baseMesh.position.y = 1.4; 
-                baseMesh.castShadow = true;
-
-                // Gold metal straps banding
+                const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.8, 3.2), new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.5 }));
+                baseMesh.position.y = 1.4; baseMesh.castShadow = true;
                 const strapMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8, roughness: 0.2 });
-                const strap1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 3.3), strapMat);
-                strap1.position.y = 1.4;
-                const strap2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.9, 3.3), strapMat);
-                strap2.position.set(-1.4, 1.4, 0);
-                const strap3 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.9, 3.3), strapMat);
-                strap3.position.set(1.4, 1.4, 0);
-
-                // Glowing Lock
-                const lockMesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.9, 0.9, 0.5), 
-                    new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfacc15, emissiveIntensity: 0.8 })
-                );
+                const strap1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.4, 3.3), strapMat); strap1.position.y = 1.4;
+                const strap2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.9, 3.3), strapMat); strap2.position.set(-1.4, 1.4, 0);
+                const strap3 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.9, 3.3), strapMat); strap3.position.set(1.4, 1.4, 0);
+                const lockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.5), new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfacc15, emissiveIntensity: 0.8 }));
                 lockMesh.position.set(0, 1.4, 1.65);
-
                 chestGroup.add(baseMesh, strap1, strap2, strap3, lockMesh);
                 chestGroup.position.set(x, y, z);
                 scene.add(chestGroup);
@@ -412,31 +395,54 @@
 
             for (let i = 0; i < 50; i++) {
                 const x = (Math.random() - 0.5) * 1400; const z = (Math.random() - 0.5) * 1400;
-                spawnGroundLoot(x, z, makeWeapon(Math.floor(Math.random() * baseWeapons.length), Math.random() < 0.6 ? 0 : 1), null);
+                spawnRealisticGroundLoot(x, z, makeWeapon(Math.floor(Math.random() * baseWeapons.length), Math.random() < 0.6 ? 0 : 1), null);
             }
             const ammoKeys = ["medium", "shells", "light", "heavy"];
             for (let i = 0; i < 60; i++) {
                 const x = (Math.random() - 0.5) * 1400; const z = (Math.random() - 0.5) * 1400;
-                spawnGroundLoot(x, z, null, ammoKeys[Math.floor(Math.random() * ammoKeys.length)]);
+                spawnRealisticGroundLoot(x, z, null, ammoKeys[Math.floor(Math.random() * ammoKeys.length)]);
             }
         }
 
-        function addBuilding(x, z, w, h, d, color, hp = 150) {
+        // Realistic multi-tier POI buildings with walls and roofs
+        function addRealisticBuilding(x, z, w, h, d, wallColor, roofColor, hp = 150) {
             const groundY = getTerrainHeight(x, z);
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: 0.75 }));
-            mesh.position.set(x, groundY + h / 2, z); mesh.castShadow = true; scene.add(mesh);
-            obstacles.push({ mesh, x, z, w, d, h, hp, isTree: false });
+            const buildingGroup = new THREE.Group();
+            
+            const walls = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.8 }));
+            walls.position.y = h / 2; walls.castShadow = true; walls.receiveShadow = true;
+
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.75, h * 0.5, 4), new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.7 }));
+            roof.position.y = h + (h * 0.25); roof.rotation.y = Math.PI / 4; roof.castShadow = true;
+
+            buildingGroup.add(walls, roof);
+            buildingGroup.position.set(x, groundY, z);
+            scene.add(buildingGroup);
+            obstacles.push({ mesh: buildingGroup, x, z, w, d, h: h + (h * 0.5), hp, isTree: false });
         }
 
-        function spawnGroundLoot(x, z, weapon, ammoType) {
+        // Detailed 3D Realistic Weapons & Ammo on the Ground
+        function spawnRealisticGroundLoot(x, z, weapon, ammoType) {
             const y = getTerrainHeight(x, z);
-            const color = weapon ? weapon.rarityColor : 0x38bdf8;
-            const mesh = new THREE.Mesh(
-                weapon ? new THREE.BoxGeometry(3.0, 0.8, 0.8) : new THREE.BoxGeometry(2.0, 1.2, 2.0),
-                new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.3 })
-            );
-            mesh.position.set(x, y + 1.2, z); scene.add(mesh);
-            lootItems.push({ mesh, x, y, z, weapon, ammoType });
+            const group = new THREE.Group();
+
+            if (weapon) {
+                // Realistic rifle/shotgun body model on the floor
+                const body = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.4, 0.8), new THREE.MeshStandardMaterial({ color: weapon.rarityColor, roughness: 0.3 }));
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.8), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8 }));
+                barrel.rotation.z = Math.PI / 2; barrel.position.set(1.8, 0, 0);
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.6), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+                stock.position.set(-1.4, -0.1, 0);
+                group.add(body, barrel, stock);
+            } else {
+                // Ammo box model
+                const ammoBox = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 1.8), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.5 }));
+                group.add(ammoBox);
+            }
+
+            group.position.set(x, y + 0.8, z);
+            scene.add(group);
+            lootItems.push({ mesh: group, x, y, z, weapon, ammoType });
         }
 
         document.getElementById("play-btn").addEventListener("click", () => {
@@ -479,7 +485,6 @@
             if (activeW) gunMesh.material.color.setHex(activeW.rarityColor);
         }
 
-        // --- FIXED MOUSE LOOK LISTENER ---
         window.addEventListener("mousemove", (e) => {
             if (document.pointerLockElement === renderer.domElement && gameState !== 'MENU') {
                 player.yaw -= e.movementX * 0.0025;
@@ -487,7 +492,6 @@
             }
         });
 
-        // Re-lock pointer on click if playing
         renderer.domElement.addEventListener("click", () => {
             if (gameState !== 'MENU' && document.pointerLockElement !== renderer.domElement) {
                 renderer.domElement.requestPointerLock();
@@ -521,17 +525,17 @@
             for (const c of chests) {
                 if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
                     c.opened = true;
-                    c.mesh.children[0].material.color.setHex(0x292524); // Opened box color
+                    c.mesh.children[0].material.color.setHex(0x292524);
                     const gun = makeWeapon(Math.floor(Math.random() * baseWeapons.length), Math.random() < 0.5 ? 2 : 3);
-                    spawnGroundLoot(c.x + 3, c.z + 3, gun, null);
-                    spawnGroundLoot(c.x - 3, c.z + 3, null, gun.ammo);
+                    spawnRealisticGroundLoot(c.x + 3, c.z + 3, gun, null);
+                    spawnRealisticGroundLoot(c.x - 3, c.z + 3, null, gun.ammo);
                     player.shield = Math.min(100, player.shield + 25);
                     updateHUD(); return;
                 }
             }
             for (let i = lootItems.length - 1; i >= 0; i--) {
                 const item = lootItems[i];
-                if (Math.hypot(player.x - item.x, player.z - item.z) < 11) {
+                if (Math.hypot(player.x - item.x, player.z - item.z) < 12) {
                     if (item.ammoType) player.ammo[item.ammoType] += 24;
                     else if (item.weapon) {
                         let emptySlot = player.inventory.findIndex(s => s === null);
@@ -539,7 +543,7 @@
                         const old = player.inventory[emptySlot];
                         player.inventory[emptySlot] = item.weapon;
                         player.slot = emptySlot;
-                        if (old) spawnGroundLoot(item.x, item.z, old, null);
+                        if (old) spawnRealisticGroundLoot(item.x, item.z, old, null);
                     }
                     scene.remove(item.mesh); lootItems.splice(i, 1); updateHUD(); return;
                 }
@@ -666,6 +670,25 @@
                 camera.position.set(player.x + Math.sin(player.yaw) * 14, player.y + 6.5, player.z + Math.cos(player.yaw) * 14);
                 camera.lookAt(player.x - Math.sin(player.yaw) * 20, player.y + 3.5, player.z - Math.cos(player.yaw) * 20);
 
+                // --- RESTORED INTERACTION PROMPT LOGIC ---
+                const promptEl = document.getElementById("prompt");
+                let showPrompt = false;
+                for (const c of chests) {
+                    if (!c.opened && Math.hypot(player.x - c.x, player.z - c.z) < 14) {
+                        promptEl.innerText = "[E] Open Chest";
+                        showPrompt = true; break;
+                    }
+                }
+                if (!showPrompt) {
+                    for (const item of lootItems) {
+                        if (Math.hypot(player.x - item.x, player.z - item.z) < 12) {
+                            promptEl.innerText = item.weapon ? `[E] Pick up ${item.weapon.rarityName} ${item.weapon.name}` : `[E] Collect Ammo`;
+                            showPrompt = true; break;
+                        }
+                    }
+                }
+                promptEl.style.display = showPrompt ? "block" : "none";
+
                 // Bullet Loop
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     const b = bullets[i];
@@ -675,13 +698,13 @@
                     }
                 }
 
-                // Check Death -> Return to Main Menu Automatically
                 if (player.hp <= 0) {
                     gameState = 'MENU';
                     document.getElementById("hud").style.display = "none";
                     document.getElementById("crosshair").style.display = "none";
                     document.getElementById("hotbar").style.display = "none";
                     document.getElementById("controls").style.display = "none";
+                    document.getElementById("prompt").style.display = "none";
                     document.getElementById("menu-overlay").style.display = "flex";
                     document.exitPointerLock();
                 }
