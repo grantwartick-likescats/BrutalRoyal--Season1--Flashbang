@@ -194,7 +194,7 @@
 
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 26px; color: #38bdf8; letter-spacing: 4px;">Season 1: Flashbang</span></h1>
-        <p>High-Detail PBR Textures, Articulated Characters, Realistic POIs, Auto-Reload & Ultra-Rare Exotics!</p>
+        <p>True Hitscan Crosshair Aiming, Overhead Glider Rigging, Smooth PBR Realism, and Exotics!</p>
         <button id="play-btn" class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
     </div>
 
@@ -226,7 +226,7 @@
         Click Screen: Lock Mouse Aim (Look Up/Down)<br>
         WASD / Arrows: Move & Steer<br>
         Spacebar: Jump / Glider Toggle<br>
-        Hold Left Click: Auto-Fire & Auto-Reload<br>
+        Hold Left Click: Auto-Fire (Fires directly at Crosshair Dot)<br>
         E: Open Chest / Pick Up Loot<br>
         Q: Build Wood Wall (10 Wood)<br>
         R: Manual Reload | 1-7: Switch Weapon
@@ -333,7 +333,6 @@
             return Math.max(-2, h1 + h2 + 6);
         }
 
-        // High-Detail PBR Terrain
         const terrainGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, 180, 180);
         terrainGeo.rotateX(-Math.PI / 2);
         const posAttr = terrainGeo.attributes.position;
@@ -343,9 +342,9 @@
             const vz = posAttr.getZ(i);
             const vy = getTerrainHeight(vx, vz);
             posAttr.setY(i, vy);
-            if (vy > 20) colors.push(0.65, 0.65, 0.62); // Rocky mountain peaks
-            else if (vy > 8) colors.push(0.85, 0.95, 0.85); // Highland grass tint
-            else colors.push(0.75, 0.88, 0.75); // Valley grass tint
+            if (vy > 20) colors.push(0.65, 0.65, 0.62);
+            else if (vy > 8) colors.push(0.85, 0.95, 0.85);
+            else colors.push(0.75, 0.88, 0.75);
         }
         terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         terrainGeo.computeVertexNormals();
@@ -364,7 +363,6 @@
         terrain.receiveShadow = true;
         scene.add(terrain);
 
-        // Reflective Ocean
         const ocean = new THREE.Mesh(
             new THREE.PlaneGeometry(4500, 4500),
             new THREE.MeshStandardMaterial({ color: 0x0369a1, roughness: 0.12, metalness: 0.75 })
@@ -373,7 +371,7 @@
         ocean.position.y = -2.2;
         scene.add(ocean);
 
-        // Volumetric-Style 3D Clouds
+        // Volumetric Clouds
         const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, transparent: true, opacity: 0.92 });
         for (let c = 0; c < 35; c++) {
             const cloudGroup = new THREE.Group();
@@ -398,16 +396,15 @@
         ];
 
         const baseWeapons = [
-            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 32, rate: 150, speed: 6.5, pellets: 1, spread: 0.015, auto: true },
-            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 25, rate: 700, speed: 5.5, pellets: 6, spread: 0.1, auto: false },
-            { id: 2, name: "Tactical SMG", ammo: "light", mag: 40, dmg: 19, rate: 75, speed: 6.0, pellets: 1, spread: 0.03, auto: true },
-            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 130, rate: 1000, speed: 10.0, pellets: 1, spread: 0.0, auto: false },
-            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 80, rate: 600, speed: 6.0, pellets: 1, spread: 0.02, auto: false },
-            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 28, rate: 130, speed: 6.0, pellets: 1, spread: 0.02, auto: true },
-            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 135, rate: 1300, speed: 4.5, pellets: 1, spread: 0.0, auto: false, explosive: true },
-            // Ultra-Rare Exotics
-            { id: 7, name: "Flashbang Pistol", ammo: "light", mag: 15, dmg: 60, rate: 160, speed: 7.0, pellets: 1, spread: 0.01, auto: true, flashbang: true },
-            { id: 8, name: "Shock SMG", ammo: "light", mag: 50, dmg: 32, rate: 55, speed: 6.8, pellets: 1, spread: 0.02, auto: true, shock: true }
+            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 32, rate: 150, speed: 60.0, pellets: 1, spread: 0.015, auto: true },
+            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 25, rate: 700, speed: 50.0, pellets: 6, spread: 0.1, auto: false },
+            { id: 2, name: "Tactical SMG", ammo: "light", mag: 40, dmg: 19, rate: 75, speed: 55.0, pellets: 1, spread: 0.03, auto: true },
+            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 130, rate: 1000, speed: 90.0, pellets: 1, spread: 0.0, auto: false },
+            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 80, rate: 600, speed: 55.0, pellets: 1, spread: 0.02, auto: false },
+            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 28, rate: 130, speed: 55.0, pellets: 1, spread: 0.02, auto: true },
+            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 135, rate: 1300, speed: 35.0, pellets: 1, spread: 0.0, auto: false, explosive: true },
+            { id: 7, name: "Flashbang Pistol", ammo: "light", mag: 15, dmg: 60, rate: 160, speed: 60.0, pellets: 1, spread: 0.01, auto: true, flashbang: true },
+            { id: 8, name: "Shock SMG", ammo: "light", mag: 50, dmg: 32, rate: 55, speed: 60.0, pellets: 1, spread: 0.02, auto: true, shock: true }
         ];
 
         function makeWeapon(typeIdx, rarityIdx) {
@@ -429,37 +426,27 @@
         let isMouseDown = false;
         const keys = {};
 
-        // --- ARTICULATED REALISTIC HUMAN CHARACTER BUILDER ---
+        // --- ARTICULATED CHARACTER BUILDER ---
         function createCharacterMesh(shirtColor, pantsColor) {
             const charGroup = new THREE.Group();
-
-            // Legs
             const legGeo = new THREE.CylinderGeometry(0.24, 0.2, 1.5, 12);
             const legMat = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.7 });
-            const leftLeg = new THREE.Mesh(legGeo, legMat);
-            leftLeg.position.set(-0.35, 0.75, 0); leftLeg.castShadow = true;
-            const rightLeg = new THREE.Mesh(legGeo, legMat);
-            rightLeg.position.set(0.35, 0.75, 0); rightLeg.castShadow = true;
+            const leftLeg = new THREE.Mesh(legGeo, legMat); leftLeg.position.set(-0.35, 0.75, 0); leftLeg.castShadow = true;
+            const rightLeg = new THREE.Mesh(legGeo, legMat); rightLeg.position.set(0.35, 0.75, 0); rightLeg.castShadow = true;
 
-            // Torso (Tactical Vest)
             const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.48, 1.7, 16), new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.5 }));
             torso.position.y = 2.3; torso.castShadow = true;
 
-            // Head & Hair/Helmet
             const head = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 24), new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.45 }));
             head.position.y = 3.65; head.castShadow = true;
             const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.6 }));
             helmet.position.y = 3.7;
 
-            // Arms
             const armGeo = new THREE.CylinderGeometry(0.18, 0.16, 1.4, 12);
             const armMat = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.6 });
-            const leftArm = new THREE.Mesh(armGeo, armMat);
-            leftArm.position.set(-0.72, 2.3, -0.2); leftArm.rotation.x = 0.4;
-            const rightArm = new THREE.Mesh(armGeo, armMat);
-            rightArm.position.set(0.72, 2.3, -0.4); rightArm.rotation.x = 1.1;
+            const leftArm = new THREE.Mesh(armGeo, armMat); leftArm.position.set(-0.72, 2.3, -0.2); leftArm.rotation.x = 0.4;
+            const rightArm = new THREE.Mesh(armGeo, armMat); rightArm.position.set(0.72, 2.3, -0.4); rightArm.rotation.x = 1.1;
 
-            // Detailed 3D Rifle Model
             const gunGroup = new THREE.Group();
             const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.25, 1.4), new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8, roughness: 0.2 }));
             const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 12), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 }));
@@ -478,10 +465,31 @@
         const gunMesh = playerAvatar.gun;
         gunMesh.visible = false;
 
+        // --- ICONIC DEFAULT FORTNITE GLIDER (POSITIONED FAR ABOVE HEAD) ---
         const gliderGroup = new THREE.Group();
-        const wingMain = new THREE.Mesh(new THREE.ConeGeometry(6.5, 1.0, 20), new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3, metalness: 0.4 }));
-        wingMain.rotation.x = Math.PI / 2;
-        gliderGroup.add(wingMain); gliderGroup.position.set(0, 5.5, 0); gliderGroup.visible = false;
+        const canopyMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35, side: THREE.DoubleSide });
+        const stripeMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.35, side: THREE.DoubleSide });
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
+
+        const wingGeo1 = new THREE.ConeGeometry(8, 0.3, 3);
+        const leftWing = new THREE.Mesh(wingGeo1, canopyMat);
+        leftWing.rotation.x = Math.PI / 2; leftWing.position.set(-3.5, 0, 0); leftWing.scale.set(1.4, 0.15, 1.8);
+        const rightWing = new THREE.Mesh(wingGeo1, canopyMat);
+        rightWing.rotation.x = Math.PI / 2; rightWing.position.set(3.5, 0, 0); rightWing.scale.set(1.4, 0.15, 1.8);
+
+        const centerStripe = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.35, 7), stripeMat);
+        centerStripe.position.set(0, 0.02, 0);
+
+        const strut1 = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.0), frameMat);
+        strut1.position.set(-2.2, -2.5, 0.5); strut1.rotation.z = -0.25;
+        const strut2 = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.0), frameMat);
+        strut2.position.set(2.2, -2.5, 0.5); strut2.rotation.z = 0.25;
+        const handlebar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.0), frameMat);
+        handlebar.rotation.z = Math.PI / 2; handlebar.position.set(0, -5.0, 0);
+
+        gliderGroup.add(leftWing, rightWing, centerStripe, strut1, strut2, handlebar);
+        gliderGroup.position.set(0, 9.5, 0); // Positioned high above the player's head!
+        gliderGroup.visible = false;
         playerGroup.add(gliderGroup);
         scene.add(playerGroup);
 
@@ -498,7 +506,6 @@
         const bots = [];
         const bullets = [];
 
-        // Realistic Landmarks matching your screenshots (Futuristic Neon Facility & Ancient Temple Sanctuary)
         const pois = [
             { name: "Realities Reign", x: -420, z: -420, ground: 0x3b0764, wallColor: 0x1e1b4b, trimColor: 0xec4899, beamColor: 0x22c55e, style: "scifi" },
             { name: "Stone Sanctum", x: -420, z: 420, ground: 0x292524, wallColor: 0x57534e, trimColor: 0x2dd4bf, beamColor: 0xa855f7, style: "temple" },
@@ -525,7 +532,6 @@
                 );
                 pad.rotation.x = -Math.PI / 2; pad.position.set(poi.x, 0.15, poi.z); pad.receiveShadow = true; scene.add(pad);
 
-                // Central Landmark Monument with Glowing Energy Spire
                 addDetailedBuilding(poi.x, poi.z, 44, 42, 44, poi.wallColor, poi.trimColor, poi.style, 450);
                 const beam = new THREE.Mesh(
                     new THREE.CylinderGeometry(2.5, 6, 180, 16),
@@ -534,14 +540,12 @@
                 beam.position.set(poi.x, 90, poi.z);
                 scene.add(beam);
 
-                // Surrounding Compound Wings & Staircases
                 addDetailedBuilding(poi.x - 75, poi.z - 75, 42, 18, 22, poi.wallColor, poi.trimColor, poi.style);
                 addDetailedBuilding(poi.x + 75, poi.z - 75, 42, 18, 22, poi.wallColor, poi.trimColor, poi.style);
                 addDetailedBuilding(poi.x - 75, poi.z + 75, 42, 18, 22, poi.wallColor, poi.trimColor, poi.style);
                 addDetailedBuilding(poi.x + 75, poi.z + 75, 42, 18, 22, poi.wallColor, poi.trimColor, poi.style);
             });
 
-            // Lush Forests with Smooth Bark & Layered Foliage
             const trunkMat = new THREE.MeshStandardMaterial({ map: woodTexture, color: 0x78350f, roughness: 0.9 });
             const pineMat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.75 });
             const oakMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.75 });
@@ -638,14 +642,12 @@
             );
             walls.position.y = h / 2; walls.castShadow = true; walls.receiveShadow = true;
 
-            // Glowing Architectural Trim / Neon Accent Strip
             const trim = new THREE.Mesh(
                 new THREE.BoxGeometry(w + 0.6, 1.2, d + 0.6),
                 new THREE.MeshStandardMaterial({ color: trimColor, emissive: trimColor, emissiveIntensity: 0.6 })
             );
             trim.position.y = h - 1.5;
 
-            // Tiered Roof
             const roof = new THREE.Mesh(
                 new THREE.ConeGeometry(Math.max(w, d) * 0.72, h * 0.55, style === 'scifi' ? 4 : 16),
                 new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.5 })
@@ -678,7 +680,6 @@
             lootItems.push({ mesh: group, x, y, z, weapon, ammoType });
         }
 
-        // --- WORKING START & RESPAWN HANDLER ---
         function startGame() {
             document.getElementById("menu-overlay").style.display = "none";
             document.getElementById("death-screen").style.display = "none";
@@ -692,9 +693,7 @@
                 if (renderer.domElement.requestPointerLock) {
                     renderer.domElement.requestPointerLock();
                 }
-            } catch (err) {
-                console.warn("Pointer lock deferred until canvas click.");
-            }
+            } catch (err) {}
 
             initGameWorld();
             gameState = 'BUS';
@@ -828,6 +827,7 @@
             setTimeout(() => { flash.style.opacity = "0"; }, 120);
         }
 
+        // --- TRUE HITSCAN / CROSSHAIR RAYCASTED SHOOTING ---
         function shootOrHarvest() {
             const w = player.inventory[player.slot];
             const now = Date.now();
@@ -856,29 +856,19 @@
 
             if (w.currentMag <= 0 && player.ammo[w.ammo] > 0) reloadWeapon();
 
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(w.explosive ? 0.6 : 0.25, 12, 12), new THREE.MeshBasicMaterial({ color: w.rarityColor }));
-            mesh.position.set(player.x, player.y + 3.0, player.z); scene.add(mesh);
-            
-            const cosPitch = Math.cos(player.pitch);
-            let vx = -Math.sin(player.yaw) * cosPitch * w.speed;
-            let vy = Math.sin(player.pitch) * w.speed;
-            let vz = -Math.cos(player.yaw) * cosPitch * w.speed;
+            // Fire bullet directly along camera forward vector (hitscan accuracy to the dot)
+            const forwardDir = new THREE.Vector3();
+            camera.getWorldDirection(forwardDir);
 
-            // Enhanced Aim Assist
-            let nearestBot = null;
-            let minDist = 85;
-            bots.forEach(bot => {
-                const dist = Math.hypot(bot.x - player.x, bot.z - player.z);
-                if (dist < minDist) { minDist = dist; nearestBot = bot; }
-            });
-            if (nearestBot) {
-                const targetAngle = Math.atan2(nearestBot.x - player.x, nearestBot.z - player.z);
-                vx += (-Math.sin(targetAngle) * w.speed - vx) * 0.45;
-                vz += (-Math.cos(targetAngle) * w.speed - vz) * 0.45;
-            }
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(w.explosive ? 0.6 : 0.25, 12, 12), new THREE.MeshBasicMaterial({ color: w.rarityColor }));
+            mesh.position.copy(camera.position);
+            scene.add(mesh);
 
             bullets.push({
-                mesh, vx, vy, vz,
+                mesh,
+                vx: forwardDir.x * w.speed,
+                vy: forwardDir.y * w.speed,
+                vz: forwardDir.z * w.speed,
                 damage: w.damage, fromPlayer: true, life: 100, flashbang: w.flashbang, shock: w.shock
             });
         }
@@ -950,7 +940,6 @@
 
                 playerGroup.position.set(player.x, player.y, player.z); playerGroup.rotation.y = player.yaw;
                 
-                // Update POI Name in HUD
                 let currentPoi = "The Island Wilderness";
                 for (const p of pois) {
                     if (Math.hypot(player.x - p.x, player.z - p.z) < 160) { currentPoi = p.name; break; }
@@ -987,7 +976,6 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
-                // Rotate loot items gently
                 lootItems.forEach(item => { item.mesh.rotation.y += 0.025; });
 
                 for (let i = bullets.length - 1; i >= 0; i--) {
