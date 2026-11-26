@@ -352,26 +352,14 @@
         .buy-btn.bundle:hover { background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%); }
         .buy-btn.equip { background: #38bdf8; color: #090d16; }
         .buy-btn.equipped { background: #22c55e; color: #090d16; cursor: default; }
-
-        #flash-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease-out;
-            z-index: 15;
-        }
     </style>
 </head>
 <body>
 
-    <div id="flash-overlay"></div>
-
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8; letter-spacing: 4px;">Season 1</span></h1>
         <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">100</span></div>
-        <p>Auto-Ammo • +20 Gold per Elim • All Bundles & Sets Available</p>
+        <p>Auto-Ammo • +20 Gold per Elim • Bots Evade Storm</p>
         <div class="btn-row">
             <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
             <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP & LOCKER</button>
@@ -515,7 +503,6 @@
         }
 
         const SHOP_CATALOG = [
-            // Default Owned
             { id: "skin_default", name: "Recruit Striker", type: "skin", rarity: "Common", price: 0, color: "#2563eb", trim: "#ffffff", icon: "🧑" },
             { id: "wrap_default", name: "Standard Issue", type: "wrap", rarity: "Common", price: 0, color: null, icon: "🔫" },
             { id: "trail_none", name: "No Contrail", type: "trail", rarity: "Common", price: 0, color: null, icon: "💨" },
@@ -525,22 +512,18 @@
             { id: "glider_default", name: "OG Cruiser", type: "glider", rarity: "Common", price: 0, primary: "#0284c7", secondary: "#facc15", icon: "🪂" },
             { id: "pickaxe_default", name: "Default Pickaxe", type: "pickaxe", rarity: "Common", price: 0, color: "#94a3b8", icon: "⛏️" },
 
-            // BRUTAL SET
             { id: "skin_brutal", name: "Brutal Commander", type: "skin", series: "BRUTAL", rarity: "Legendary", price: 1500, color: "#1e293b", trim: "#ef4444", glow: "#dc2626", icon: "👺" },
             { id: "wrap_brutal", name: "Bloodline Wrap", type: "wrap", series: "BRUTAL", rarity: "Epic", price: 600, color: "#991b1b", icon: "🩸" },
             { id: "pickaxe_brutal", name: "Brutal Cleaver", type: "pickaxe", series: "BRUTAL", rarity: "Epic", price: 800, color: "#b91c1c", icon: "🪓" },
 
-            // ANNIVERSARY SET
             { id: "skin_anniversary", name: "1st Year Vanguard", type: "skin", series: "ANNIVERSARY", rarity: "Icon Series", price: 1200, color: "#f59e0b", trim: "#ffffff", glow: "#fbbf24", icon: "🎂" },
             { id: "glider_anniversary", name: "Birthday Balloon", type: "glider", series: "ANNIVERSARY", rarity: "Epic", price: 800, primary: "#ec4899", secondary: "#facc15", icon: "🎈" },
             { id: "emote_anniversary", name: "Cake Celebration", type: "emote", series: "ANNIVERSARY", rarity: "Epic", price: 500, text: "🎉 HAPPY 1ST YEAR! 🎉", color: "#f472b6", icon: "🍰" },
 
-            // ROYALTY SET
             { id: "skin_royalty", name: "Monarch Sovereign", type: "skin", series: "ROYALTY", rarity: "Legendary", price: 2000, color: "#78350f", trim: "#facc15", glow: "#fde047", icon: "👑" },
             { id: "wrap_royalty", name: "Gilded Velvet Wrap", type: "wrap", series: "ROYALTY", rarity: "Epic", price: 600, color: "#b45309", icon: "⚜️" },
             { id: "trail_royalty", name: "Golden Aura Trail", type: "trail", series: "ROYALTY", rarity: "Epic", price: 700, color: "#fde047", secondary: "#b45309", icon: "✨" },
 
-            // FLASHBANG SET & BUNDLE
             { 
                 id: "bundle_flashbang", name: "Flashbang Mega Bundle", type: "bundle", series: "FLASHBANG", rarity: "Flashbang Series", price: 2200, 
                 contains: ["skin_flashbang", "wrap_flashbang", "trail_flashbang", "emote_flashbang"], icon: "⚡🎁" 
@@ -550,7 +533,6 @@
             { id: "trail_flashbang", name: "Hypernova Flash Trail", type: "trail", series: "FLASHBANG", rarity: "Flashbang Series", price: 600, color: "#ffffff", secondary: "#38bdf8", icon: "☄️" },
             { id: "emote_flashbang", name: "Flashbang Flex", type: "emote", series: "FLASHBANG", rarity: "Flashbang Series", price: 400, text: "⚡ FLASHED! ⚡", color: "#38bdf8", icon: "💥" },
 
-            // SHOCKWAVE SET & BUNDLE
             { 
                 id: "bundle_shockwave", name: "Shockwave Mega Bundle", type: "bundle", series: "SHOCKWAVE", rarity: "Epic", price: 2000, 
                 contains: ["skin_shockwave", "wrap_shockwave", "trail_shockwave", "emote_shockwave", "pickaxe_shockwave"], icon: "🌀🎁" 
@@ -559,13 +541,7 @@
             { id: "wrap_shockwave", name: "Sonic Pulse Wrap", type: "wrap", series: "SHOCKWAVE", rarity: "Rare", price: 500, color: "#38bdf8", icon: "🔊" },
             { id: "trail_shockwave", name: "Shockwave Rings", type: "trail", series: "SHOCKWAVE", rarity: "Rare", price: 600, color: "#38bdf8", secondary: "#ffffff", icon: "💠" },
             { id: "emote_shockwave", name: "Sonic Wave Dance", type: "emote", series: "SHOCKWAVE", rarity: "Epic", price: 500, text: "🌀 SHOCKWAVE! 🌀", color: "#38bdf8", icon: "🎛️" },
-            { id: "pickaxe_shockwave", name: "Pulse Hammer", type: "pickaxe", series: "SHOCKWAVE", rarity: "Rare", price: 800, color: "#0284c7", icon: "🔨" },
-
-            // DAILY ROTATION ITEMS
-            { id: "skin_aura", name: "Golden Aura", type: "skin", section: "daily", rarity: "Uncommon", price: 800, color: "#facc15", trim: "#78350f", icon: "🌟" },
-            { id: "skin_brawler", name: "Crimson Brawler", type: "skin", section: "daily", rarity: "Rare", price: 1200, color: "#e11d48", trim: "#1e293b", icon: "🥷" },
-            { id: "wrap_magma", name: "Magma Core", type: "wrap", section: "daily", rarity: "Rare", price: 500, color: "#f97316", icon: "🔥" },
-            { id: "emote_griddy", name: "Get Griddy", type: "emote", section: "daily", rarity: "Icon Series", price: 500, text: "🕺 RIGHT FOOT CREEP!", color: "#4ade80", icon: "🕺" }
+            { id: "pickaxe_shockwave", name: "Pulse Hammer", type: "pickaxe", series: "SHOCKWAVE", rarity: "Rare", price: 800, color: "#0284c7", icon: "🔨" }
         ];
 
         function getEquippedItem(type) {
@@ -628,8 +604,7 @@
                     { title: "👑 Pure Royalty Set", filter: i => i.series === 'ROYALTY' },
                     { title: "🎁 Featured Bundles", filter: i => i.type === 'bundle' },
                     { title: "⚡ Flashbang Series", filter: i => i.series === 'FLASHBANG' && i.type !== 'bundle' },
-                    { title: "🌀 Shockwave Set", filter: i => i.series === 'SHOCKWAVE' && i.type !== 'bundle' },
-                    { title: "🔥 Daily Rotation", filter: i => i.section === 'daily' }
+                    { title: "🌀 Shockwave Set", filter: i => i.series === 'SHOCKWAVE' && i.type !== 'bundle' }
                 ];
 
                 sections.forEach(sec => {
@@ -944,8 +919,8 @@
             }
 
             for (let i = 0; i < 12; i++) {
-                const bx = (Math.random() - 0.5) * 3000;
-                const by = (Math.random() - 0.5) * 3000;
+                const bx = (Math.random() - 0.5) * 2000;
+                const by = (Math.random() - 0.5) * 2000;
                 bots.push({
                     x: bx, y: by, angle: Math.random() * Math.PI * 2,
                     hp: 100, shield: 0, radius: 18,
@@ -1366,39 +1341,52 @@
                     const bot = bots[i];
                     if (bot.hp <= 0) { bots.splice(i, 1); continue; }
 
-                    const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
-                    if (distToPlayer < 400) {
-                        const trueAngle = Math.atan2(player.y - bot.y, player.x - bot.x);
-                        bot.angle = trueAngle + (Math.random() - 0.5) * 0.8;
+                    const distToStormCenter = Math.hypot(bot.x - storm.x, bot.y - storm.y);
+                    
+                    // Storm Evading AI Logic
+                    if (distToStormCenter > storm.radius - 80) {
+                        // Bot is getting too close to the storm or outside it! Head directly to center.
+                        bot.angle = Math.atan2(storm.y - bot.y, storm.x - bot.x);
+                        const bx = Math.cos(bot.angle) * 2.2;
+                        const by = Math.sin(bot.angle) * 2.2;
+                        if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
+                        if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
+                    } else {
+                        // Normal combat/wander logic inside safe zone
+                        const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
+                        if (distToPlayer < 400) {
+                            const trueAngle = Math.atan2(player.y - bot.y, player.x - bot.x);
+                            bot.angle = trueAngle + (Math.random() - 0.5) * 0.8;
 
-                        if (distToPlayer > 160) {
-                            const bx = Math.cos(bot.angle) * 1.8;
-                            const by = Math.sin(bot.angle) * 1.8;
+                            if (distToPlayer > 160) {
+                                const bx = Math.cos(bot.angle) * 1.8;
+                                const by = Math.sin(bot.angle) * 1.8;
+                                if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
+                                if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
+                            }
+                            bot.cooldown--;
+                            if (bot.cooldown <= 0) {
+                                bot.cooldown = 110;
+                                bullets.push({
+                                    x: bot.x + Math.cos(bot.angle) * 22,
+                                    y: bot.y + Math.sin(bot.angle) * 22,
+                                    vx: Math.cos(bot.angle) * 12,
+                                    vy: Math.sin(bot.angle) * 12,
+                                    damage: 10, color: "#fb923c", fromPlayer: false, life: 40
+                                });
+                            }
+                        } else {
+                            bot.wanderTimer--;
+                            if (bot.wanderTimer <= 0) {
+                                bot.wanderAngle = Math.random() * Math.PI * 2;
+                                bot.wanderTimer = 120;
+                            }
+                            bot.angle = bot.wanderAngle;
+                            const bx = Math.cos(bot.angle) * 1.2;
+                            const by = Math.sin(bot.angle) * 1.2;
                             if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                             if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                         }
-                        bot.cooldown--;
-                        if (bot.cooldown <= 0) {
-                            bot.cooldown = 110;
-                            bullets.push({
-                                x: bot.x + Math.cos(bot.angle) * 22,
-                                y: bot.y + Math.sin(bot.angle) * 22,
-                                vx: Math.cos(bot.angle) * 12,
-                                vy: Math.sin(bot.angle) * 12,
-                                damage: 10, color: "#fb923c", fromPlayer: false, life: 40
-                            });
-                        }
-                    } else {
-                        bot.wanderTimer--;
-                        if (bot.wanderTimer <= 0) {
-                            bot.wanderAngle = Math.random() * Math.PI * 2;
-                            bot.wanderTimer = 120;
-                        }
-                        bot.angle = bot.wanderAngle;
-                        const bx = Math.cos(bot.angle) * 1.2;
-                        const by = Math.sin(bot.angle) * 1.2;
-                        if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
-                        if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                     }
                 }
 
