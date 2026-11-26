@@ -124,6 +124,11 @@
             align-items: center;
             justify-content: center;
             z-index: 20;
+            pointer-events: auto;
+        }
+        .overlay-screen.hidden {
+            display: none !important;
+            pointer-events: none;
         }
         h1 {
             font-size: 52px;
@@ -146,6 +151,8 @@
             gap: 16px;
             flex-wrap: wrap;
             justify-content: center;
+            position: relative;
+            z-index: 25;
         }
         .action-btn {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
@@ -160,6 +167,7 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            pointer-events: auto;
         }
         .action-btn:hover {
             transform: scale(1.04);
@@ -185,7 +193,6 @@
         }
 
         #shop-screen {
-            display: none;
             background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
             justify-content: flex-start;
             padding-top: 24px;
@@ -355,14 +362,6 @@
         .buy-btn.equip { background: #38bdf8; color: #090d16; }
         .buy-btn.equipped { background: #22c55e; color: #090d16; cursor: default; }
 
-        #death-screen {
-            display: none;
-            background: radial-gradient(circle at center, #450a0a 0%, #090d16 100%);
-        }
-        #victory-screen {
-            display: none;
-            background: radial-gradient(circle at center, #064e3b 0%, #090d16 100%);
-        }
         #flash-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -381,14 +380,14 @@
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8; letter-spacing: 4px;">Season 1</span></h1>
         <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">100</span></div>
-        <p>Auto-Ammo • +20 Gold per Elim • Bundles & Flashbang Set</p>
+        <p>Auto-Ammo • +20 Gold per Elim • Brutal, Anniversary & Royalty Sets</p>
         <div class="btn-row">
             <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
             <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP & LOCKER</button>
         </div>
     </div>
 
-    <div id="shop-screen" class="overlay-screen">
+    <div id="shop-screen" class="overlay-screen hidden">
         <div class="shop-header">
             <div>
                 <h2 style="margin: 0; color: #facc15; font-size: 26px; text-transform: uppercase;">Item Shop & Locker</h2>
@@ -410,18 +409,17 @@
         </div>
 
         <div class="shop-tabs">
-            <button class="tab-btn active" onclick="filterShop('ALL', this)">All Items & Bundles</button>
-            <button class="tab-btn" onclick="filterShop('FLASHBANG', this)">⚡ Flashbang Set</button>
-            <button class="tab-btn" onclick="filterShop('SHOCKWAVE', this)">🌀 Shockwave Set</button>
+            <button class="tab-btn active" onclick="filterShop('ALL', this)">All Items & Sets</button>
+            <button class="tab-btn" onclick="filterShop('BRUTAL', this)">🔥 Brutal Set</button>
+            <button class="tab-btn" onclick="filterShop('ANNIVERSARY', this)">🎉 1st Anniversary</button>
+            <button class="tab-btn" onclick="filterShop('ROYALTY', this)">👑 Pure Royalty</button>
             <button class="tab-btn" onclick="filterShop('skin', this)">Skins</button>
-            <button class="tab-btn" onclick="filterShop('wrap', this)">Wraps</button>
-            <button class="tab-btn" onclick="filterShop('trail', this)">Trails</button>
         </div>
 
         <div id="shop-content-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
     </div>
 
-    <div id="death-screen" class="overlay-screen">
+    <div id="death-screen" class="overlay-screen hidden">
         <h1 style="color: #ef4444; font-size: 60px; text-shadow: 0 4px 35px rgba(239, 68, 68, 0.7);">YOU DIED</h1>
         <p id="death-stats" style="font-size: 18px; color: #f8fafc; margin-bottom: 24px;">Eliminations: 0 | Gold Earned: 0</p>
         <div class="btn-row">
@@ -430,7 +428,7 @@
         </div>
     </div>
 
-    <div id="victory-screen" class="overlay-screen">
+    <div id="victory-screen" class="overlay-screen hidden">
         <h1 style="color: #4ade80; font-size: 56px; text-shadow: 0 4px 35px rgba(74, 222, 128, 0.7);">VICTORY ROYALE!</h1>
         <p id="victory-stats" style="font-size: 18px; color: #f8fafc; margin-bottom: 24px;">Eliminations: 0 | Gold Earned: 0</p>
         <div class="btn-row">
@@ -497,7 +495,7 @@
         };
 
         const DEFAULT_SAVE = {
-            gold: 100,
+            gold: 500,
             owned: [
                 "skin_default", "wrap_default", "trail_none",
                 "emote_default", "pet_none", "song_default",
@@ -525,6 +523,7 @@
         }
 
         const SHOP_CATALOG = [
+            // Default Owned
             { id: "skin_default", name: "Recruit Striker", type: "skin", rarity: "Common", price: 0, color: "#2563eb", trim: "#ffffff", icon: "🧑" },
             { id: "wrap_default", name: "Standard Issue", type: "wrap", rarity: "Common", price: 0, color: null, icon: "🔫" },
             { id: "trail_none", name: "No Contrail", type: "trail", rarity: "Common", price: 0, color: null, icon: "💨" },
@@ -534,30 +533,20 @@
             { id: "glider_default", name: "OG Cruiser", type: "glider", rarity: "Common", price: 0, primary: "#0284c7", secondary: "#facc15", icon: "🪂" },
             { id: "pickaxe_default", name: "Default Pickaxe", type: "pickaxe", rarity: "Common", price: 0, color: "#94a3b8", icon: "⛏️" },
 
-            { 
-                id: "bundle_flashbang", name: "Flashbang Mega Bundle", type: "bundle", series: "FLASHBANG", rarity: "Flashbang Series", price: 2200, 
-                contains: ["skin_flashbang", "wrap_flashbang", "trail_flashbang", "emote_flashbang"], icon: "⚡🎁" 
-            },
-            { 
-                id: "bundle_shockwave", name: "Shockwave Mega Bundle", type: "bundle", series: "SHOCKWAVE", rarity: "Epic", price: 2000, 
-                contains: ["skin_shockwave", "wrap_shockwave", "trail_shockwave", "emote_shockwave", "pickaxe_shockwave"], icon: "🌀🎁" 
-            },
+            // BRUTAL SET
+            { id: "skin_brutal", name: "Brutal Commander", type: "skin", series: "BRUTAL", rarity: "Legendary", price: 1500, color: "#1e293b", trim: "#ef4444", glow: "#dc2626", icon: "👺" },
+            { id: "wrap_brutal", name: "Bloodline Wrap", type: "wrap", series: "BRUTAL", rarity: "Epic", price: 600, color: "#991b1b", icon: "🩸" },
+            { id: "pickaxe_brutal", name: "Brutal Cleaver", type: "pickaxe", series: "BRUTAL", rarity: "Epic", price: 800, color: "#b91c1c", icon: "🪓" },
 
-            { id: "skin_flashbang", name: "Flashbang Operative", type: "skin", series: "FLASHBANG", rarity: "Flashbang Series", price: 1200, color: "#ffffff", trim: "#06b6d4", glow: "#38bdf8", icon: "⚡" },
-            { id: "wrap_flashbang", name: "Blinding Nova Wrap", type: "wrap", series: "FLASHBANG", rarity: "Flashbang Series", price: 500, color: "#e0f2fe", icon: "✨" },
-            { id: "trail_flashbang", name: "Hypernova Flash Trail", type: "trail", series: "FLASHBANG", rarity: "Flashbang Series", price: 600, color: "#ffffff", secondary: "#38bdf8", icon: "☄️" },
-            { id: "emote_flashbang", name: "Flashbang Flex", type: "emote", series: "FLASHBANG", rarity: "Flashbang Series", price: 400, text: "⚡ FLASHED! ⚡", color: "#38bdf8", icon: "💥" },
+            // 1ST DAY ANNIVERSARY SET
+            { id: "skin_anniversary", name: "1st Year Vanguard", type: "skin", series: "ANNIVERSARY", rarity: "Icon Series", price: 1200, color: "#f59e0b", trim: "#ffffff", glow: "#fbbf24", icon: "🎂" },
+            { id: "glider_anniversary", name: "Birthday Balloon", type: "glider", series: "ANNIVERSARY", rarity: "Epic", price: 800, primary: "#ec4899", secondary: "#facc15", icon: "🎈" },
+            { id: "emote_anniversary", name: "Cake Celebration", type: "emote", series: "ANNIVERSARY", rarity: "Epic", price: 500, text: "🎉 HAPPY 1ST YEAR! 🎉", color: "#f472b6", icon: "🍰" },
 
-            { id: "skin_shockwave", name: "Shockwave Striker", type: "skin", series: "SHOCKWAVE", rarity: "Epic", price: 1200, color: "#0284c7", trim: "#38bdf8", glow: "#0284c7", icon: "🌀" },
-            { id: "wrap_shockwave", name: "Sonic Pulse Wrap", type: "wrap", series: "SHOCKWAVE", rarity: "Rare", price: 500, color: "#38bdf8", icon: "🔊" },
-            { id: "trail_shockwave", name: "Shockwave Rings", type: "trail", series: "SHOCKWAVE", rarity: "Rare", price: 600, color: "#38bdf8", secondary: "#ffffff", icon: "💠" },
-            { id: "emote_shockwave", name: "Sonic Wave Dance", type: "emote", series: "SHOCKWAVE", rarity: "Epic", price: 500, text: "🌀 SHOCKWAVE! 🌀", color: "#38bdf8", icon: "🎛️" },
-            { id: "pickaxe_shockwave", name: "Pulse Hammer", type: "pickaxe", series: "SHOCKWAVE", rarity: "Rare", price: 800, color: "#0284c7", icon: "🔨" },
-
-            { id: "skin_aura", name: "Golden Aura", type: "skin", section: "daily", rarity: "Uncommon", price: 800, color: "#facc15", trim: "#78350f", icon: "🌟" },
-            { id: "skin_brawler", name: "Crimson Brawler", type: "skin", section: "daily", rarity: "Rare", price: 1200, color: "#e11d48", trim: "#1e293b", icon: "🥷" },
-            { id: "wrap_magma", name: "Magma Core", type: "wrap", section: "daily", rarity: "Rare", price: 500, color: "#f97316", icon: "🔥" },
-            { id: "emote_griddy", name: "Get Griddy", type: "emote", section: "daily", rarity: "Icon Series", price: 500, text: "🕺 RIGHT FOOT CREEP!", color: "#4ade80", icon: "🕺" }
+            // PURE ROYALTY SET
+            { id: "skin_royalty", name: "Monarch Sovereign", type: "skin", series: "ROYALTY", rarity: "Legendary", price: 2000, color: "#78350f", trim: "#facc15", glow: "#fde047", icon: "👑" },
+            { id: "wrap_royalty", name: "Gilded Velvet Wrap", type: "wrap", series: "ROYALTY", rarity: "Epic", price: 600, color: "#b45309", icon: "⚜️" },
+            { id: "trail_royalty", name: "Golden Aura Trail", type: "trail", series: "ROYALTY", rarity: "Epic", price: 700, color: "#fde047", secondary: "#b45309", icon: "✨" }
         ];
 
         function getEquippedItem(type) {
@@ -571,24 +560,23 @@
             "Rare": "#38bdf8",
             "Epic": "#c084fc",
             "Legendary": "#fb923c",
-            "Icon Series": "#2dd4bf",
-            "Flashbang Series": "#38bdf8"
+            "Icon Series": "#2dd4bf"
         };
 
         let currentShopFilter = 'ALL';
 
         function openShop() {
-            document.getElementById("menu-overlay").style.display = "none";
-            document.getElementById("death-screen").style.display = "none";
-            document.getElementById("victory-screen").style.display = "none";
-            document.getElementById("shop-screen").style.display = "flex";
+            document.getElementById("menu-overlay").classList.add("hidden");
+            document.getElementById("death-screen").classList.add("hidden");
+            document.getElementById("victory-screen").classList.add("hidden");
+            document.getElementById("shop-screen").classList.remove("hidden");
             persistSave();
             renderShop();
         }
 
         function closeShop() {
-            document.getElementById("shop-screen").style.display = "none";
-            document.getElementById("menu-overlay").style.display = "flex";
+            document.getElementById("shop-screen").classList.add("hidden");
+            document.getElementById("menu-overlay").classList.remove("hidden");
             persistSave();
         }
 
@@ -605,61 +593,52 @@
 
             const items = SHOP_CATALOG.filter(item => {
                 if (currentShopFilter === 'ALL') return true;
-                if (currentShopFilter === 'FLASHBANG') return item.series === 'FLASHBANG';
-                if (currentShopFilter === 'SHOCKWAVE') return item.series === 'SHOCKWAVE';
+                if (currentShopFilter === 'BRUTAL') return item.series === 'BRUTAL';
+                if (currentShopFilter === 'ANNIVERSARY') return item.series === 'ANNIVERSARY';
+                if (currentShopFilter === 'ROYALTY') return item.series === 'ROYALTY';
                 return item.type === currentShopFilter;
             });
 
             if (currentShopFilter === 'ALL') {
-                const bundleItems = items.filter(i => i.type === 'bundle');
-                if (bundleItems.length > 0) {
+                // Brutal Set
+                const brutalItems = items.filter(i => i.series === 'BRUTAL');
+                if (brutalItems.length > 0) {
                     const titleRow = document.createElement("div");
                     titleRow.className = "section-title";
-                    titleRow.innerHTML = `<span>🎁 Featured Bundles (Discounted Sets)</span>`;
+                    titleRow.innerHTML = `<span>🔥 Brutal Set</span>`;
                     container.appendChild(titleRow);
 
                     const grid = document.createElement("div");
                     grid.className = "shop-grid";
-                    bundleItems.forEach(item => grid.appendChild(createShopCard(item)));
+                    brutalItems.forEach(item => grid.appendChild(createShopCard(item)));
                     container.appendChild(grid);
                 }
 
-                const flashItems = items.filter(i => i.series === 'FLASHBANG' && i.type !== 'bundle');
-                if (flashItems.length > 0) {
+                // Anniversary Set
+                const anniItems = items.filter(i => i.series === 'ANNIVERSARY');
+                if (anniItems.length > 0) {
                     const titleRow = document.createElement("div");
                     titleRow.className = "section-title";
-                    titleRow.innerHTML = `<span>⚡ Flashbang Series</span>`;
+                    titleRow.innerHTML = `<span>🎉 1st Day Anniversary Set</span>`;
                     container.appendChild(titleRow);
 
                     const grid = document.createElement("div");
                     grid.className = "shop-grid";
-                    flashItems.forEach(item => grid.appendChild(createShopCard(item)));
+                    anniItems.forEach(item => grid.appendChild(createShopCard(item)));
                     container.appendChild(grid);
                 }
 
-                const shockItems = items.filter(i => i.series === 'SHOCKWAVE' && i.type !== 'bundle');
-                if (shockItems.length > 0) {
+                // Royalty Set
+                const royaltyItems = items.filter(i => i.series === 'ROYALTY');
+                if (royaltyItems.length > 0) {
                     const titleRow = document.createElement("div");
                     titleRow.className = "section-title";
-                    titleRow.innerHTML = `<span>🌀 Shockwave Set</span>`;
+                    titleRow.innerHTML = `<span>👑 Pure Royalty Set</span>`;
                     container.appendChild(titleRow);
 
                     const grid = document.createElement("div");
                     grid.className = "shop-grid";
-                    shockItems.forEach(item => grid.appendChild(createShopCard(item)));
-                    container.appendChild(grid);
-                }
-
-                const dailyItems = items.filter(i => i.section === 'daily');
-                if (dailyItems.length > 0) {
-                    const titleRow = document.createElement("div");
-                    titleRow.className = "section-title";
-                    titleRow.innerHTML = `<span>🔥 Daily Rotation</span><span class="timer-badge">⏱️ Refreshes in 14h 22m</span>`;
-                    container.appendChild(titleRow);
-
-                    const grid = document.createElement("div");
-                    grid.className = "shop-grid";
-                    dailyItems.forEach(item => grid.appendChild(createShopCard(item)));
+                    royaltyItems.forEach(item => grid.appendChild(createShopCard(item)));
                     container.appendChild(grid);
                 }
             } else {
@@ -672,29 +651,19 @@
         }
 
         function createShopCard(item) {
-            const isBundle = item.type === 'bundle';
             let isOwned = saveData.owned.includes(item.id);
-            if (isBundle && item.contains) {
-                isOwned = item.contains.every(subId => saveData.owned.includes(subId));
-            }
-            const isEquipped = !isBundle && saveData.equipped[item.type] === item.id;
+            const isEquipped = saveData.equipped[item.type] === item.id;
             const rColor = rarityColors[item.rarity] || "#94a3b8";
 
             const card = document.createElement("div");
             card.className = "shop-card";
-            card.style.borderColor = isBundle ? "#ec4899" : (item.series ? "#38bdf8" : rColor);
+            card.style.borderColor = item.series ? "#facc15" : rColor;
 
             let btnHtml = "";
             if (isEquipped) {
                 btnHtml = `<button class="buy-btn equipped">✔ EQUIPPED</button>`;
             } else if (isOwned) {
-                if (isBundle) {
-                    btnHtml = `<button class="buy-btn equipped">OWNED</button>`;
-                } else {
-                    btnHtml = `<button class="buy-btn equip" onclick="equipItem('${item.id}')">EQUIP</button>`;
-                }
-            } else if (isBundle) {
-                btnHtml = `<button class="buy-btn bundle" onclick="buyBundle('${item.id}')">🪙 ${item.price.toLocaleString()}</button>`;
+                btnHtml = `<button class="buy-btn equip" onclick="equipItem('${item.id}')">EQUIP</button>`;
             } else {
                 btnHtml = `<button class="buy-btn purchase" onclick="buyItem('${item.id}')">🪙 ${item.price.toLocaleString()}</button>`;
             }
@@ -703,7 +672,7 @@
                 <div class="rarity-tag" style="color: ${rColor}; border: 1px solid ${rColor};">${item.rarity}</div>
                 <div class="item-preview" style="background: ${item.color || '#1e293b'}; border: 2px solid ${rColor};">${item.icon}</div>
                 <div class="item-name">${item.name}</div>
-                <div class="item-type">${isBundle ? 'MEGA BUNDLE' : item.type.toUpperCase()}</div>
+                <div class="item-type">${item.type.toUpperCase()}</div>
                 ${btnHtml}
             `;
             return card;
@@ -732,27 +701,6 @@
             saveData.equipped[item.type] = itemId;
             persistSave();
             renderShop();
-        }
-
-        function buyBundle(bundleId) {
-            const bundle = SHOP_CATALOG.find(i => i.id === bundleId);
-            if (!bundle || !bundle.contains) return;
-
-            const unownedItems = bundle.contains.filter(id => !saveData.owned.includes(id));
-            if (unownedItems.length === 0) return;
-
-            if (saveData.gold >= bundle.price) {
-                saveData.gold -= bundle.price;
-                unownedItems.forEach(id => {
-                    if (!saveData.owned.includes(id)) saveData.owned.push(id);
-                });
-                persistSave();
-                renderShop();
-            } else {
-                const msg = document.getElementById("code-msg");
-                msg.style.color = "#ef4444";
-                msg.innerText = `Not enough Gold for Bundle!`;
-            }
         }
 
         function redeemCode() {
@@ -982,10 +930,10 @@
         }
 
         function startGame() {
-            document.getElementById("menu-overlay").style.display = "none";
-            document.getElementById("death-screen").style.display = "none";
-            document.getElementById("victory-screen").style.display = "none";
-            document.getElementById("shop-screen").style.display = "none";
+            document.getElementById("menu-overlay").classList.add("hidden");
+            document.getElementById("death-screen").classList.add("hidden");
+            document.getElementById("victory-screen").classList.add("hidden");
+            document.getElementById("shop-screen").classList.add("hidden");
             document.getElementById("hud").style.display = "flex";
             document.getElementById("hotbar").style.display = "flex";
             document.getElementById("banner").style.display = "block";
@@ -1426,7 +1374,7 @@
                     document.getElementById("controls").style.display = "none";
                     document.getElementById("prompt").style.display = "none";
                     document.getElementById("death-stats").innerText = `Eliminations: ${player.elims} | Gold Earned: +${player.matchGold} 🪙`;
-                    document.getElementById("death-screen").style.display = "flex";
+                    document.getElementById("death-screen").classList.remove("hidden");
                 } else if (bots.length === 0) {
                     gameState = 'VICTORY';
                     stopMusic();
@@ -1435,7 +1383,7 @@
                     document.getElementById("controls").style.display = "none";
                     document.getElementById("prompt").style.display = "none";
                     document.getElementById("victory-stats").innerText = `Eliminations: ${player.elims} | Gold Earned: +${player.matchGold} 🪙`;
-                    document.getElementById("victory-screen").style.display = "flex";
+                    document.getElementById("victory-screen").classList.remove("hidden");
                 }
             }
         }
