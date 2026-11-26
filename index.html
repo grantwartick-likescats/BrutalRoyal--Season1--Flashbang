@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brutal Royale, Season 1, Flashbang (Top-Down)</title>
+    <title>Brutal Royale, Season 1, Flashbang</title>
     <style>
         body {
             margin: 0;
@@ -32,11 +32,12 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
             z-index: 5;
         }
-        .stat-row { display: flex; gap: 20px; font-weight: 800; font-size: 16px; }
+        .stat-row { display: flex; gap: 18px; font-weight: 800; font-size: 16px; }
         .shield { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         .hp { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.4); }
         .wood { color: #fbbf24; }
-        .poi { color: #facc15; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .gold-txt { color: #fde047; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
+        .poi { color: #facc15; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; }
         #ammo-row { display: flex; gap: 14px; font-size: 12px; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
         #hotbar {
             position: absolute;
@@ -135,16 +136,22 @@
         p {
             color: #cbd5e1;
             font-size: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             text-align: center;
             max-width: 600px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .action-btn {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
             border: none;
-            padding: 18px 54px;
-            font-size: 22px;
+            padding: 16px 42px;
+            font-size: 20px;
             font-weight: 800;
             border-radius: 14px;
             cursor: pointer;
@@ -154,9 +161,180 @@
             letter-spacing: 1px;
         }
         .action-btn:hover {
-            transform: scale(1.06);
+            transform: scale(1.05);
             box-shadow: 0 12px 40px rgba(245, 158, 11, 0.8);
         }
+        .shop-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
+            box-shadow: 0 8px 30px rgba(2, 132, 199, 0.5);
+        }
+        .shop-btn:hover {
+            box-shadow: 0 12px 40px rgba(2, 132, 199, 0.85);
+        }
+        .gold-badge {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid #facc15;
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-size: 20px;
+            font-weight: 900;
+            color: #fde047;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(250, 204, 21, 0.3);
+        }
+
+        #shop-screen {
+            display: none;
+            background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+            justify-content: flex-start;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+        .shop-header {
+            width: 92%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .code-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #38bdf8;
+        }
+        .code-box input {
+            background: #090d16;
+            border: 1px solid #475569;
+            color: #facc15;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            outline: none;
+            width: 160px;
+        }
+        .code-box button {
+            background: #38bdf8;
+            color: #090d16;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .code-box button:hover { background: #7dd3fc; }
+        #code-msg {
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 4px;
+            height: 18px;
+        }
+        .active-codes-box {
+            font-size: 12px;
+            color: #38bdf8;
+            margin-top: 4px;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px dashed rgba(56, 189, 248, 0.4);
+        }
+        .shop-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab-btn {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .tab-btn.active {
+            background: #facc15;
+            color: #090d16;
+            border-color: #facc15;
+        }
+        .shop-grid {
+            width: 92%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding-bottom: 50px;
+        }
+        .shop-card {
+            background: rgba(30, 41, 59, 0.75);
+            border: 2px solid #334155;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: transform 0.15s ease;
+        }
+        .shop-card:hover { transform: translateY(-4px); }
+        .rarity-tag {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.45);
+        }
+        .item-preview {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .item-name {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .item-type {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 14px;
+        }
+        .buy-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .buy-btn.purchase { background: #facc15; color: #090d16; }
+        .buy-btn.purchase:hover { background: #fef08a; }
+        .buy-btn.equip { background: #38bdf8; color: #090d16; }
+        .buy-btn.equipped { background: #22c55e; color: #090d16; cursor: default; }
+
         #death-screen {
             display: none;
             background: radial-gradient(circle at center, #450a0a 0%, #090d16 100%);
@@ -182,26 +360,75 @@
 
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 26px; color: #38bdf8; letter-spacing: 4px;">Season 1: Flashbang</span></h1>
-        <p>Easier mode: Fewer, slower, less accurate bots, plus lots of loot and chests!</p>
-        <button id="play-btn" class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
+        <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">500</span></div>
+        <p>Auto-Ammo • +20 Gold per Elim • No Win Bonus • Randomized Codes!</p>
+        <div class="btn-row">
+            <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
+            <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP & LOCKER</button>
+        </div>
+    </div>
+
+    <div id="shop-screen" class="overlay-screen">
+        <div class="shop-header">
+            <div>
+                <h2 style="margin: 0; color: #facc15; font-size: 28px; text-transform: uppercase;">Item Shop & Locker</h2>
+                <div style="font-size: 13px; color: #94a3b8;">Earn +20 Gold per Elimination or redeem randomized Secret Codes!</div>
+            </div>
+
+            <div>
+                <div class="code-box">
+                    <input type="text" id="code-input" placeholder="ENTER CODE..." maxlength="16">
+                    <button onclick="redeemCode()">REDEEM</button>
+                </div>
+                <div id="code-msg"></div>
+                <div class="active-codes-box" id="active-codes-hint">Active Codes to Try: Loading...</div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="gold-badge" style="margin: 0; font-size: 17px;">🪙 <span id="shop-gold">500</span></div>
+                <button class="action-btn" style="padding: 10px 22px; font-size: 15px;" onclick="closeShop()">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <div class="shop-tabs">
+            <button class="tab-btn active" onclick="filterShop('ALL', this)">All Items</button>
+            <button class="tab-btn" onclick="filterShop('FLASHBANG', this)">⚡ Flashbang Series</button>
+            <button class="tab-btn" onclick="filterShop('SHOCKWAVE', this)">🌀 Shockwave Set</button>
+            <button class="tab-btn" onclick="filterShop('skin', this)">Skins</button>
+            <button class="tab-btn" onclick="filterShop('wrap', this)">Wraps</button>
+            <button class="tab-btn" onclick="filterShop('trail', this)">Trails</button>
+            <button class="tab-btn" onclick="filterShop('emote', this)">Emotes</button>
+            <button class="tab-btn" onclick="filterShop('pet', this)">Pets</button>
+            <button class="tab-btn" onclick="filterShop('song', this)">Songs</button>
+            <button class="tab-btn" onclick="filterShop('glider', this)">Gliders & Pickaxes</button>
+        </div>
+
+        <div class="shop-grid" id="shop-grid"></div>
     </div>
 
     <div id="death-screen" class="overlay-screen">
         <h1 style="color: #ef4444; font-size: 64px; text-shadow: 0 4px 35px rgba(239, 68, 68, 0.8);">YOU DIED</h1>
-        <p id="death-stats" style="font-size: 20px; color: #f8fafc; margin-bottom: 28px;">Eliminations: 0 | Wood Gathered: 0</p>
-        <button class="action-btn" onclick="startGame()">PLAY AGAIN</button>
+        <p id="death-stats" style="font-size: 20px; color: #f8fafc; margin-bottom: 28px;">Eliminations: 0 | Gold Earned: 0</p>
+        <div class="btn-row">
+            <button class="action-btn" onclick="startGame()">PLAY AGAIN</button>
+            <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP</button>
+        </div>
     </div>
 
     <div id="victory-screen" class="overlay-screen">
         <h1 style="color: #4ade80; font-size: 60px; text-shadow: 0 4px 35px rgba(74, 222, 128, 0.8);">VICTORY ROYALE!</h1>
-        <p id="victory-stats" style="font-size: 20px; color: #f8fafc; margin-bottom: 28px;">Eliminations: 0 | Wood Gathered: 0</p>
-        <button class="action-btn" onclick="startGame()">PLAY AGAIN</button>
+        <p id="victory-stats" style="font-size: 20px; color: #f8fafc; margin-bottom: 28px;">Eliminations: 0 | Gold Earned: 0</p>
+        <div class="btn-row">
+            <button class="action-btn" onclick="startGame()">PLAY AGAIN</button>
+            <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP</button>
+        </div>
     </div>
 
     <div id="hud">
         <div class="stat-row">
             <div>Alive: <span id="alive-count">11</span></div>
             <div>Elims: <span id="elims">0</span></div>
+            <div class="gold-txt">🪙 <span id="hud-gold">500</span></div>
             <div class="shield">Shield: <span id="shield">100</span></div>
             <div class="hp">HP: <span id="hp">100</span></div>
             <div class="wood">Wood: <span id="wood">0</span></div>
@@ -220,11 +447,11 @@
         <b>Controls:</b><br>
         Mouse Cursor: Aim 360°<br>
         WASD / Arrows: Move<br>
-        Spacebar: Jump Out / Open Glider<br>
-        Hold Left Click: Auto-Fire / Harvest<br>
-        E: Open Chest / Pick Up Loot<br>
-        Q: Build Wood Wall (10 Wood)<br>
-        R: Manual Reload | 1-7: Switch Slot
+        Spacebar: Jump Out / Glider<br>
+        Hold Left Click: Fire / Pickaxe<br>
+        E: Open Chest / Pick Up Gun<br>
+        Q: Build Wall | B: Emote | M: Music<br>
+        R: Reload | 1-7: Switch Slot
     </div>
 
     <div id="banner">BATTLE BUS — Press SPACEBAR to Jump Out!</div>
@@ -243,6 +470,266 @@
     <canvas id="gameCanvas"></canvas>
 
     <script>
+        function generateRandomCode() {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const digits = "0123456789";
+            let part1 = "";
+            let part2 = "";
+            for (let i = 0; i < 3; i++) part1 += letters.charAt(Math.floor(Math.random() * letters.length));
+            for (let i = 0; i < 4; i++) part2 += digits.charAt(Math.floor(Math.random() * digits.length));
+            return `${part1}-${part2}`;
+        }
+
+        const activeRandomCodes = {
+            [generateRandomCode()]: 1000,
+            [generateRandomCode()]: 750,
+            [generateRandomCode()]: 1500,
+            [generateRandomCode()]: 500,
+            [generateRandomCode()]: 1200
+        };
+
+        const DEFAULT_SAVE = {
+            gold: 500,
+            owned: [
+                "skin_default", "wrap_default", "trail_none",
+                "emote_default", "pet_none", "song_default",
+                "glider_default", "pickaxe_default"
+            ],
+            equipped: {
+                skin: "skin_default",
+                wrap: "wrap_default",
+                trail: "trail_none",
+                emote: "emote_default",
+                pet: "pet_none",
+                song: "song_default",
+                glider: "glider_default",
+                pickaxe: "pickaxe_default"
+            },
+            redeemedCodes: []
+        };
+
+        let saveData = JSON.parse(localStorage.getItem("brutalRoyaleSave")) || JSON.parse(JSON.stringify(DEFAULT_SAVE));
+        function persistSave() {
+            localStorage.setItem("brutalRoyaleSave", JSON.stringify(saveData));
+            document.getElementById("menu-gold").innerText = saveData.gold;
+            document.getElementById("shop-gold").innerText = saveData.gold;
+            document.getElementById("hud-gold").innerText = saveData.gold;
+        }
+
+        const SHOP_CATALOG = [
+            { id: "skin_default", name: "Recruit Striker", type: "skin", rarity: "Common", price: 0, color: "#2563eb", trim: "#ffffff", icon: "🧑" },
+            { id: "wrap_default", name: "Standard Issue", type: "wrap", rarity: "Common", price: 0, color: null, icon: "🔫" },
+            { id: "trail_none", name: "No Contrail", type: "trail", rarity: "Common", price: 0, color: null, icon: "💨" },
+            { id: "emote_default", name: "Wave Hello", type: "emote", rarity: "Common", price: 0, text: "👋 GG!", color: "#ffffff", icon: "👋" },
+            { id: "pet_none", name: "No Pet", type: "pet", rarity: "Common", price: 0, color: null, icon: "❌" },
+            { id: "song_default", name: "Island Breeze", type: "song", rarity: "Common", price: 0, tempo: 500, notes: [261, 329, 392, 523], icon: "🎵" },
+            { id: "glider_default", name: "OG Cruiser", type: "glider", rarity: "Common", price: 0, primary: "#0284c7", secondary: "#facc15", icon: "🪂" },
+            { id: "pickaxe_default", name: "Default Pickaxe", type: "pickaxe", rarity: "Common", price: 0, color: "#94a3b8", icon: "⛏️" },
+
+            { id: "skin_flashbang", name: "Flashbang Operative", type: "skin", series: "FLASHBANG", rarity: "Flashbang Series", price: 1200, color: "#ffffff", trim: "#06b6d4", glow: "#38bdf8", icon: "⚡" },
+            { id: "wrap_flashbang", name: "Blinding Nova Wrap", type: "wrap", series: "FLASHBANG", rarity: "Flashbang Series", price: 500, color: "#e0f2fe", trailColor: "#38bdf8", icon: "✨" },
+            { id: "trail_flashbang", name: "Hypernova Flash Trail", type: "trail", series: "FLASHBANG", rarity: "Flashbang Series", price: 600, color: "#ffffff", secondary: "#38bdf8", icon: "☄️" },
+            { id: "emote_flashbang", name: "Flashbang Flex", type: "emote", series: "FLASHBANG", rarity: "Flashbang Series", price: 400, text: "⚡ FLASHED! ⚡", color: "#38bdf8", icon: "💥" },
+            { id: "pet_flashbang", name: "Mini Flash Drone", type: "pet", series: "FLASHBANG", rarity: "Flashbang Series", price: 1000, color: "#38bdf8", eye: "#ffffff", icon: "🛸" },
+            { id: "glider_flashbang", name: "Photon Wing", type: "glider", series: "FLASHBANG", rarity: "Flashbang Series", price: 800, primary: "#ffffff", secondary: "#06b6d4", icon: "🚀" },
+            { id: "song_flashbang", name: "Flashbang Anthem", type: "song", series: "FLASHBANG", rarity: "Flashbang Series", price: 500, tempo: 240, notes: [523, 659, 783, 1046, 783, 659], icon: "🎧" },
+
+            { id: "skin_shockwave", name: "Shockwave Striker", type: "skin", series: "SHOCKWAVE", rarity: "Epic", price: 1200, color: "#0284c7", trim: "#38bdf8", glow: "#0284c7", icon: "🌀" },
+            { id: "wrap_shockwave", name: "Sonic Pulse Wrap", type: "wrap", series: "SHOCKWAVE", rarity: "Rare", price: 500, color: "#38bdf8", icon: "🔊" },
+            { id: "trail_shockwave", name: "Shockwave Rings", type: "trail", series: "SHOCKWAVE", rarity: "Rare", price: 600, color: "#38bdf8", secondary: "#ffffff", icon: "💠" },
+            { id: "emote_shockwave", name: "Sonic Wave Dance", type: "emote", series: "SHOCKWAVE", rarity: "Epic", price: 500, text: "🌀 SHOCKWAVE! 🌀", color: "#38bdf8", icon: "🎛️" },
+            { id: "pickaxe_shockwave", name: "Pulse Hammer", type: "pickaxe", series: "SHOCKWAVE", rarity: "Rare", price: 800, color: "#0284c7", icon: "🔨" },
+
+            { id: "skin_aura", name: "Golden Aura", type: "skin", rarity: "Uncommon", price: 800, color: "#facc15", trim: "#78350f", icon: "🌟" },
+            { id: "skin_brawler", name: "Crimson Brawler", type: "skin", rarity: "Rare", price: 1200, color: "#e11d48", trim: "#1e293b", icon: "🥷" },
+            { id: "wrap_lime", name: "Toxic Slime", type: "wrap", rarity: "Uncommon", price: 300, color: "#4ade80", icon: "🧪" },
+            { id: "wrap_magma", name: "Magma Core", type: "wrap", rarity: "Rare", price: 500, color: "#f97316", icon: "🔥" },
+            { id: "trail_fire", name: "Flames Contrail", type: "trail", rarity: "Rare", price: 400, color: "#f97316", secondary: "#facc15", icon: "🔥" },
+            { id: "emote_gg", name: "GG Crown", type: "emote", rarity: "Uncommon", price: 200, text: "👑 GG EZ!", color: "#facc15", icon: "👑" },
+            { id: "emote_griddy", name: "Get Griddy", type: "emote", rarity: "Icon Series", price: 500, text: "🕺 RIGHT FOOT CREEP!", color: "#4ade80", icon: "🕺" },
+            { id: "pet_bonesy", name: "Bonesy Pup", type: "pet", rarity: "Epic", price: 1000, color: "#d97706", eye: "#000000", icon: "🐶" },
+            { id: "song_butter", name: "Butter Barn Hoedown", type: "song", rarity: "Rare", price: 500, tempo: 320, notes: [392, 440, 493, 587, 493, 440], icon: "🤠" }
+        ];
+
+        function getEquippedItem(type) {
+            const id = saveData.equipped[type];
+            return SHOP_CATALOG.find(item => item.id === id) || SHOP_CATALOG.find(item => item.type === type);
+        }
+
+        const rarityColors = {
+            "Common": "#94a3b8",
+            "Uncommon": "#4ade80",
+            "Rare": "#38bdf8",
+            "Epic": "#c084fc",
+            "Legendary": "#fb923c",
+            "Icon Series": "#2dd4bf",
+            "Flashbang Series": "#38bdf8"
+        };
+
+        let currentShopFilter = 'ALL';
+
+        function openShop() {
+            document.getElementById("menu-overlay").style.display = "none";
+            document.getElementById("death-screen").style.display = "none";
+            document.getElementById("victory-screen").style.display = "none";
+            document.getElementById("shop-screen").style.display = "flex";
+            persistSave();
+            renderShop();
+            updateActiveCodesHint();
+        }
+
+        function closeShop() {
+            document.getElementById("shop-screen").style.display = "none";
+            document.getElementById("menu-overlay").style.display = "flex";
+            persistSave();
+        }
+
+        function filterShop(category, btnEl) {
+            currentShopFilter = category;
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            btnEl.classList.add("active");
+            renderShop();
+        }
+
+        function updateActiveCodesHint() {
+            const unredeemed = Object.keys(activeRandomCodes).filter(c => !saveData.redeemedCodes.includes(c));
+            const hintEl = document.getElementById("active-codes-hint");
+            if (unredeemed.length > 0) {
+                hintEl.innerText = `Active Codes to Try: ${unredeemed.join(", ")}`;
+            } else {
+                hintEl.innerText = "All active random codes redeemed!";
+            }
+        }
+
+        function renderShop() {
+            const grid = document.getElementById("shop-grid");
+            grid.innerHTML = "";
+
+            const items = SHOP_CATALOG.filter(item => {
+                if (currentShopFilter === 'ALL') return true;
+                if (currentShopFilter === 'FLASHBANG') return item.series === 'FLASHBANG';
+                if (currentShopFilter === 'SHOCKWAVE') return item.series === 'SHOCKWAVE';
+                if (currentShopFilter === 'glider') return item.type === 'glider' || item.type === 'pickaxe';
+                return item.type === currentShopFilter;
+            });
+
+            items.forEach(item => {
+                const isOwned = saveData.owned.includes(item.id);
+                const isEquipped = saveData.equipped[item.type] === item.id;
+                const rColor = rarityColors[item.rarity] || "#94a3b8";
+
+                const card = document.createElement("div");
+                card.className = "shop-card";
+                card.style.borderColor = item.series === 'FLASHBANG' || item.series === 'SHOCKWAVE' ? "#38bdf8" : rColor;
+
+                let btnHtml = "";
+                if (isEquipped) {
+                    btnHtml = `<button class="buy-btn equipped">✔ EQUIPPED</button>`;
+                } else if (isOwned) {
+                    btnHtml = `<button class="buy-btn equip" onclick="equipItem('${item.id}')">EQUIP</button>`;
+                } else {
+                    btnHtml = `<button class="buy-btn purchase" onclick="buyItem('${item.id}')">🪙 ${item.price.toLocaleString()}</button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="rarity-tag" style="color: ${rColor}; border: 1px solid ${rColor};">${item.rarity}</div>
+                    <div class="item-preview" style="background: ${item.color || '#1e293b'}; border: 2px solid ${rColor};">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-type">${item.type.toUpperCase()}</div>
+                    ${btnHtml}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function buyItem(itemId) {
+            const item = SHOP_CATALOG.find(i => i.id === itemId);
+            if (!item || saveData.owned.includes(itemId)) return;
+
+            if (saveData.gold >= item.price) {
+                saveData.gold -= item.price;
+                saveData.owned.push(itemId);
+                saveData.equipped[item.type] = itemId;
+                persistSave();
+                renderShop();
+            } else {
+                const msg = document.getElementById("code-msg");
+                msg.style.color = "#ef4444";
+                msg.innerText = `Not enough Gold! Need ${item.price - saveData.gold} more.`;
+            }
+        }
+
+        function equipItem(itemId) {
+            const item = SHOP_CATALOG.find(i => i.id === itemId);
+            if (!item || !saveData.owned.includes(itemId)) return;
+            saveData.equipped[item.type] = itemId;
+            persistSave();
+            renderShop();
+        }
+
+        function redeemCode() {
+            const input = document.getElementById("code-input");
+            const msg = document.getElementById("code-msg");
+            const code = input.value.trim().toUpperCase();
+            input.value = "";
+
+            if (!code) return;
+            if (saveData.redeemedCodes.includes(code)) {
+                msg.style.color = "#facc15";
+                msg.innerText = "Code already redeemed!";
+                return;
+            }
+            if (activeRandomCodes[code]) {
+                const reward = activeRandomCodes[code];
+                saveData.gold += reward;
+                saveData.redeemedCodes.push(code);
+                persistSave();
+                msg.style.color = "#4ade80";
+                msg.innerText = `SUCCESS! +${reward.toLocaleString()} Gold added!`;
+                updateActiveCodesHint();
+            } else {
+                msg.style.color = "#ef4444";
+                msg.innerText = "Invalid or expired code!";
+            }
+        }
+
+        // --- WEB AUDIO SYNTHESIZER ---
+        let audioCtx = null;
+        let musicInterval = null;
+        let musicEnabled = true;
+
+        function startEquippedMusic() {
+            stopMusic();
+            if (!musicEnabled) return;
+            const song = getEquippedItem("song");
+            if (!song || !song.notes) return;
+
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let step = 0;
+            musicInterval = setInterval(() => {
+                if (gameState !== 'PLAYING' && gameState !== 'BUS' && gameState !== 'SKYDIVING' && gameState !== 'GLIDING') return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = song.series === 'FLASHBANG' ? 'sawtooth' : 'triangle';
+                osc.frequency.setValueAtTime(song.notes[step % song.notes.length], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.035, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.23);
+                step++;
+            }, song.tempo || 400);
+        }
+
+        function stopMusic() {
+            if (musicInterval) {
+                clearInterval(musicInterval);
+                musicInterval = null;
+            }
+        }
+
+        // --- GAME ENGINE ---
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
@@ -292,10 +779,12 @@
 
         const player = {
             x: -1700, y: -300, altitude: 100, angle: 0, speed: 5.2,
-            hp: 100, shield: 100, wood: 0, elims: 0, radius: 18,
+            hp: 100, shield: 100, wood: 0, elims: 0, matchGold: 0, radius: 18,
             inventory: [null, null, null, null, null, null, null], slot: 0,
             ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 },
-            reloading: false
+            reloading: false,
+            emoteTimer: 0,
+            petX: -1700, petY: -300
         };
 
         const bus = { x: -1700, y: -300, vx: 6.5, vy: 1.2 };
@@ -306,7 +795,8 @@
         let lootItems = [];
         let bots = [];
         let bullets = [];
-        let explosions = [];
+        let trailParticles = [];
+        let floatingTexts = [];
 
         const keys = {};
         const mouse = { x: canvas.width / 2, y: canvas.height / 2, down: false };
@@ -318,14 +808,17 @@
             lootItems = [];
             bots = [];
             bullets = [];
-            explosions = [];
+            trailParticles = [];
+            floatingTexts = [];
 
             bus.x = -1700; bus.y = -300;
             player.x = bus.x; player.y = bus.y; player.altitude = 100;
-            player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0;
+            player.petX = bus.x - 30; player.petY = bus.y - 30;
+            player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0; player.matchGold = 0;
             player.inventory = [null, null, null, null, null, null, null]; player.slot = 0;
             player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 };
             player.reloading = false;
+            player.emoteTimer = 0;
             storm.radius = 2400;
 
             pois.forEach(p => {
@@ -341,7 +834,6 @@
                 chests.push({ x: p.x + 90, y: p.y + 90, opened: false });
             });
 
-            // Extra wilderness chests
             for (let i = 0; i < 20; i++) {
                 chests.push({
                     x: (Math.random() - 0.5) * 3000,
@@ -350,7 +842,6 @@
                 });
             }
 
-            // Trees
             for (let i = 0; i < 200; i++) {
                 const tx = (Math.random() - 0.5) * 3300;
                 const ty = (Math.random() - 0.5) * 3300;
@@ -365,9 +856,8 @@
                 });
             }
 
-            // Loot
-            for (let i = 0; i < 60; i++) {
-                const wType = Math.floor(Math.random() * 7);
+            for (let i = 0; i < 65; i++) {
+                const wType = Math.random() < 0.04 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * 7);
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
@@ -377,7 +867,7 @@
             }
 
             const ammoTypes = ["medium", "shells", "light", "heavy", "rockets"];
-            for (let i = 0; i < 70; i++) {
+            for (let i = 0; i < 80; i++) {
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
@@ -386,15 +876,14 @@
                 });
             }
 
-            // LESS, WORSE BOTS (Only 10 bots, slower movement, lower accuracy/cooldown)
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 12; i++) {
                 const bx = (Math.random() - 0.5) * 3000;
                 const by = (Math.random() - 0.5) * 3000;
                 bots.push({
                     x: bx, y: by, angle: Math.random() * Math.PI * 2,
                     hp: 100, shield: 0, radius: 18,
-                    weapon: makeWeapon(0, 0), // Common Assault Rifle only
-                    cooldown: 95, // Shoot much slower
+                    weapon: makeWeapon(0, 0),
+                    cooldown: 95,
                     wanderAngle: Math.random() * Math.PI * 2,
                     wanderTimer: 100
                 });
@@ -413,6 +902,7 @@
             document.getElementById("menu-overlay").style.display = "none";
             document.getElementById("death-screen").style.display = "none";
             document.getElementById("victory-screen").style.display = "none";
+            document.getElementById("shop-screen").style.display = "none";
             document.getElementById("hud").style.display = "flex";
             document.getElementById("hotbar").style.display = "flex";
             document.getElementById("banner").style.display = "block";
@@ -420,12 +910,14 @@
             document.getElementById("controls").style.display = "block";
 
             initWorld();
+            startEquippedMusic();
             gameState = 'BUS';
         }
 
         function updateHUD() {
             document.getElementById("alive-count").innerText = bots.length + (player.hp > 0 ? 1 : 0);
             document.getElementById("elims").innerText = player.elims;
+            document.getElementById("hud-gold").innerText = saveData.gold;
             document.getElementById("shield").innerText = Math.max(0, Math.round(player.shield));
             document.getElementById("hp").innerText = Math.max(0, Math.round(player.hp));
             document.getElementById("wood").innerText = player.wood;
@@ -484,6 +976,14 @@
             if (k === 'e' && gameState === 'PLAYING') interact();
             if (k === 'r' && gameState === 'PLAYING') reloadWeapon();
             if (k === 'q' && gameState === 'PLAYING') buildWall();
+            if (k === 'b' && gameState === 'PLAYING') {
+                player.emoteTimer = 120;
+            }
+            if (k === 'm') {
+                musicEnabled = !musicEnabled;
+                if (musicEnabled) startEquippedMusic();
+                else stopMusic();
+            }
         });
 
         window.addEventListener("keyup", e => {
@@ -495,7 +995,7 @@
             for (const c of chests) {
                 if (!c.opened && Math.hypot(player.x - c.x, player.y - c.y) < 65) {
                     c.opened = true;
-                    const wType = Math.floor(Math.random() * 7);
+                    const wType = Math.random() < 0.08 ? (Math.random() < 0.5 ? 7 : 8) : Math.floor(Math.random() * 7);
                     const gun = makeWeapon(wType, 2 + Math.floor(Math.random() * 3));
                     lootItems.push({ x: c.x + 25, y: c.y + 15, weapon: gun, ammoType: null });
                     lootItems.push({ x: c.x - 25, y: c.y + 15, weapon: null, ammoType: gun.ammo });
@@ -507,17 +1007,13 @@
 
             for (let i = lootItems.length - 1; i >= 0; i--) {
                 const item = lootItems[i];
-                if (Math.hypot(player.x - item.x, player.y - item.y) < 55) {
-                    if (item.ammoType) {
-                        player.ammo[item.ammoType] += 30;
-                    } else if (item.weapon) {
-                        let emptySlot = player.inventory.findIndex(s => s === null);
-                        if (emptySlot === -1) emptySlot = player.slot;
-                        const old = player.inventory[emptySlot];
-                        player.inventory[emptySlot] = item.weapon;
-                        player.slot = emptySlot;
-                        if (old) lootItems.push({ x: item.x, y: item.y, weapon: old, ammoType: null });
-                    }
+                if (item.weapon && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
+                    let emptySlot = player.inventory.findIndex(s => s === null);
+                    if (emptySlot === -1) emptySlot = player.slot;
+                    const old = player.inventory[emptySlot];
+                    player.inventory[emptySlot] = item.weapon;
+                    player.slot = emptySlot;
+                    if (old) lootItems.push({ x: item.x, y: item.y, weapon: old, ammoType: null });
                     lootItems.splice(i, 1);
                     updateHUD();
                     return;
@@ -592,6 +1088,9 @@
 
             if (w.currentMag <= 0 && player.ammo[w.ammo] > 0) reloadWeapon();
 
+            const equippedWrap = getEquippedItem("wrap");
+            const bulletColor = equippedWrap && equippedWrap.color ? equippedWrap.color : w.rarityHex;
+
             for (let p = 0; p < w.pellets; p++) {
                 const spreadAngle = player.angle + (Math.random() - 0.5) * w.spread;
                 bullets.push({
@@ -600,7 +1099,7 @@
                     vx: Math.cos(spreadAngle) * w.speed,
                     vy: Math.sin(spreadAngle) * w.speed,
                     damage: w.damage,
-                    color: w.rarityHex,
+                    color: bulletColor,
                     fromPlayer: true,
                     life: 55,
                     explosive: w.explosive,
@@ -628,6 +1127,37 @@
             if (gameState === 'MENU' || gameState === 'DEAD' || gameState === 'VICTORY') return;
 
             player.angle = Math.atan2(mouse.y - canvas.height / 2, mouse.x - canvas.width / 2);
+            if (player.emoteTimer > 0) player.emoteTimer--;
+
+            const targetPetX = player.x - Math.cos(player.angle) * 32 - Math.sin(player.angle) * 26;
+            const targetPetY = player.y - Math.sin(player.angle) * 32 + Math.cos(player.angle) * 26;
+            player.petX += (targetPetX - player.petX) * 0.14;
+            player.petY += (targetPetY - player.petY) * 0.14;
+
+            const equippedTrail = getEquippedItem("trail");
+            if (equippedTrail && equippedTrail.color && (gameState === 'SKYDIVING' || gameState === 'GLIDING' || keys['w'] || keys['a'] || keys['s'] || keys['d'])) {
+                if (Math.random() < 0.65) {
+                    trailParticles.push({
+                        x: player.x + (Math.random() - 0.5) * 14,
+                        y: player.y + (Math.random() - 0.5) * 14,
+                        color: Math.random() < 0.5 ? equippedTrail.color : (equippedTrail.secondary || equippedTrail.color),
+                        size: 6 + Math.random() * 5,
+                        alpha: 1.0
+                    });
+                }
+            }
+
+            for (let i = trailParticles.length - 1; i >= 0; i--) {
+                trailParticles[i].alpha -= 0.04;
+                trailParticles[i].size *= 0.96;
+                if (trailParticles[i].alpha <= 0) trailParticles.splice(i, 1);
+            }
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                floatingTexts[i].y -= 0.8;
+                floatingTexts[i].alpha -= 0.02;
+                if (floatingTexts[i].alpha <= 0) floatingTexts.splice(i, 1);
+            }
 
             if (gameState === 'BUS') {
                 bus.x += bus.vx;
@@ -687,6 +1217,16 @@
 
                 if (mouse.down) shootOrHarvest();
 
+                for (let i = lootItems.length - 1; i >= 0; i--) {
+                    const item = lootItems[i];
+                    if (item.ammoType && Math.hypot(player.x - item.x, player.y - item.y) < 42) {
+                        player.ammo[item.ammoType] += 30;
+                        floatingTexts.push({ x: player.x, y: player.y - 25, text: `+30 ${item.ammoType.toUpperCase()}`, color: "#38bdf8", alpha: 1 });
+                        lootItems.splice(i, 1);
+                        updateHUD();
+                    }
+                }
+
                 let locName = "The Island";
                 for (const p of pois) {
                     if (Math.hypot(player.x - p.x, player.y - p.y) < 340) { locName = p.name; break; }
@@ -703,8 +1243,8 @@
                 }
                 if (!showPrompt) {
                     for (const item of lootItems) {
-                        if (Math.hypot(player.x - item.x, player.y - item.y) < 55) {
-                            promptEl.innerText = item.weapon ? `[E] Pick Up ${item.weapon.rarityName} ${item.weapon.name}` : `[E] Collect ${item.ammoType.toUpperCase()} Ammo`;
+                        if (item.weapon && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
+                            promptEl.innerText = `[E] Pick Up ${item.weapon.rarityName} ${item.weapon.name}`;
                             showPrompt = true; break;
                         }
                     }
@@ -739,7 +1279,11 @@
                                     lootItems.push({ x: bot.x, y: bot.y, weapon: bot.weapon, ammoType: null });
                                     bots.splice(j, 1);
                                     player.elims++;
+                                    player.matchGold += 20;
+                                    saveData.gold += 20;
+                                    persistSave();
                                     player.shield = Math.min(100, player.shield + 50);
+                                    floatingTexts.push({ x: bot.x, y: bot.y - 20, text: "+20 GOLD 🪙", color: "#fde047", alpha: 1.2 });
                                     updateHUD();
                                 }
                                 break;
@@ -764,7 +1308,6 @@
                     if (hit) bullets.splice(i, 1);
                 }
 
-                // WORSE BOTS AI (Slower movement, huge inaccuracy spread)
                 for (let i = bots.length - 1; i >= 0; i--) {
                     const bot = bots[i];
                     if (bot.hp <= 0) { bots.splice(i, 1); continue; }
@@ -772,18 +1315,17 @@
                     const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
                     if (distToPlayer < 400) {
                         const trueAngle = Math.atan2(player.y - bot.y, player.x - bot.x);
-                        // Add massive inaccuracy spread so they miss most shots
                         bot.angle = trueAngle + (Math.random() - 0.5) * 0.8;
 
                         if (distToPlayer > 160) {
-                            const bx = Math.cos(bot.angle) * 1.8; // Slower speed
+                            const bx = Math.cos(bot.angle) * 1.8;
                             const by = Math.sin(bot.angle) * 1.8;
                             if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                             if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                         }
                         bot.cooldown--;
                         if (bot.cooldown <= 0) {
-                            bot.cooldown = 110; // Fire very slowly
+                            bot.cooldown = 110;
                             bullets.push({
                                 x: bot.x + Math.cos(bot.angle) * 22,
                                 y: bot.y + Math.sin(bot.angle) * 22,
@@ -808,19 +1350,21 @@
 
                 if (player.hp <= 0) {
                     gameState = 'DEAD';
+                    stopMusic();
                     document.getElementById("hud").style.display = "none";
                     document.getElementById("hotbar").style.display = "none";
                     document.getElementById("controls").style.display = "none";
                     document.getElementById("prompt").style.display = "none";
-                    document.getElementById("death-stats").innerText = `Eliminations: ${player.elims} | Wood Gathered: ${player.wood}`;
+                    document.getElementById("death-stats").innerText = `Eliminations: ${player.elims} | Gold Earned: +${player.matchGold} 🪙`;
                     document.getElementById("death-screen").style.display = "flex";
                 } else if (bots.length === 0) {
                     gameState = 'VICTORY';
+                    stopMusic();
                     document.getElementById("hud").style.display = "none";
                     document.getElementById("hotbar").style.display = "none";
                     document.getElementById("controls").style.display = "none";
                     document.getElementById("prompt").style.display = "none";
-                    document.getElementById("victory-stats").innerText = `Eliminations: ${player.elims} | Wood Gathered: ${player.wood}`;
+                    document.getElementById("victory-stats").innerText = `Eliminations: ${player.elims} | Gold Earned: +${player.matchGold} 🪙`;
                     document.getElementById("victory-screen").style.display = "flex";
                 }
             }
@@ -854,6 +1398,14 @@
                 ctx.fillText(p.name.toUpperCase(), p.x, p.y - 240);
             });
 
+            trailParticles.forEach(tp => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, tp.alpha);
+                ctx.fillStyle = tp.color;
+                ctx.beginPath(); ctx.arc(tp.x, tp.y, tp.size, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            });
+
             chests.forEach(c => {
                 ctx.fillStyle = c.opened ? "#334155" : "#2563eb";
                 ctx.strokeStyle = c.opened ? "#475569" : "#facc15";
@@ -874,6 +1426,7 @@
                 } else {
                     ctx.fillStyle = "#38bdf8";
                     ctx.fillRect(item.x - 8, item.y - 8, 16, 16);
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.strokeRect(item.x - 8, item.y - 8, 16, 16);
                 }
             });
 
@@ -890,7 +1443,7 @@
             });
 
             bots.forEach(bot => {
-                drawCharacter(bot.x, bot.y, bot.angle, "#dc2626", bot.weapon ? bot.weapon.rarityHex : "#111827", false);
+                drawCharacter(bot.x, bot.y, bot.angle, "#dc2626", "#ffffff", null, bot.weapon ? bot.weapon.rarityHex : "#111827", null);
             });
 
             bullets.forEach(b => {
@@ -898,15 +1451,51 @@
                 ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI * 2); ctx.fill();
             });
 
+            const equippedPet = getEquippedItem("pet");
+            if (gameState === 'PLAYING' && equippedPet && equippedPet.color) {
+                ctx.save();
+                ctx.translate(player.petX, player.petY);
+                ctx.fillStyle = equippedPet.color;
+                ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = equippedPet.eye || "#ffffff";
+                ctx.beginPath(); ctx.arc(3, -3, 2.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(3, 3, 2.5, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+
             if (gameState !== 'BUS') {
                 const scale = 1 + (player.altitude / 140);
+                const skin = getEquippedItem("skin");
+                const wrap = getEquippedItem("wrap");
+                const glider = getEquippedItem("glider");
+                const activeW = player.inventory[player.slot];
+                const gunColor = activeW ? (wrap && wrap.color ? wrap.color : activeW.rarityHex) : null;
+
                 ctx.save();
                 ctx.translate(player.x, player.y);
                 ctx.scale(scale, scale);
-                const activeW = player.inventory[player.slot];
-                drawCharacter(0, 0, player.angle, "#2563eb", activeW ? activeW.rarityHex : null, gameState === 'GLIDING');
+                drawCharacter(0, 0, player.angle, skin.color, skin.trim, skin.glow, gunColor, gameState === 'GLIDING' ? glider : null);
                 ctx.restore();
+
+                if (player.emoteTimer > 0) {
+                    const emote = getEquippedItem("emote");
+                    ctx.fillStyle = emote.color || "#facc15";
+                    ctx.font = "900 18px Segoe UI";
+                    ctx.textAlign = "center";
+                    ctx.fillText(emote.text, player.x, player.y - 36 - Math.sin(player.emoteTimer * 0.2) * 5);
+                }
             }
+
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.fillStyle = ft.color;
+                ctx.font = "bold 15px Segoe UI";
+                ctx.textAlign = "center";
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
 
             if (gameState === 'BUS') {
                 ctx.save();
@@ -927,10 +1516,15 @@
             ctx.restore();
         }
 
-        function drawCharacter(x, y, angle, color, gunColor, hasGlider) {
+        function drawCharacter(x, y, angle, color, trimColor, glowColor, gunColor, gliderObj) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle);
+
+            if (glowColor) {
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = 18;
+            }
 
             if (gunColor) {
                 ctx.fillStyle = gunColor;
@@ -939,14 +1533,18 @@
 
             ctx.fillStyle = color;
             ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
+            ctx.strokeStyle = trimColor || "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
 
             ctx.fillStyle = "#fed7aa";
             ctx.beginPath(); ctx.arc(2, 0, 10, 0, Math.PI * 2); ctx.fill();
 
-            if (hasGlider) {
-                ctx.fillStyle = "#0284c7";
-                ctx.strokeStyle = "#facc15";
+            if (gliderObj) {
+                ctx.fillStyle = gliderObj.primary || "#0284c7";
+                ctx.strokeStyle = gliderObj.secondary || "#facc15";
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(22, 0); ctx.lineTo(-18, -48); ctx.lineTo(-10, 0); ctx.lineTo(-18, 48);
@@ -956,6 +1554,7 @@
             ctx.restore();
         }
 
+        persistSave();
         function loop() {
             update();
             draw();
