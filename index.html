@@ -35,7 +35,6 @@
         .stat-row { display: flex; gap: 18px; font-weight: 800; font-size: 15px; }
         .shield { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
         .hp { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.4); }
-        .wood { color: #fbbf24; }
         .gold-txt { color: #fde047; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
         .poi { color: #facc15; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
         #ammo-row { display: flex; gap: 14px; font-size: 12px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
@@ -359,7 +358,7 @@
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8; letter-spacing: 4px;">Season 1</span></h1>
         <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">100</span></div>
-        <p>Higher Difficulty • Med Kits & Shield Cans • Bots Take Storm Damage</p>
+        <p>Hardcore Difficulty • Aggressive Bots • Faster Storm & Combat</p>
         <div class="btn-row">
             <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
             <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP & LOCKER</button>
@@ -424,7 +423,6 @@
             <div class="gold-txt">🪙 <span id="hud-gold">100</span></div>
             <div class="shield">Shield: <span id="shield">100</span></div>
             <div class="hp">HP: <span id="hp">100</span></div>
-            <div class="wood">Wood: <span id="wood">0</span></div>
         </div>
         <div class="poi">Location: <span id="poi-name">Battle Bus</span></div>
         <div id="ammo-row">
@@ -433,6 +431,8 @@
             <span>Light: <b id="ammo-light">0</b></span>
             <span>Heavy: <b id="ammo-heavy">0</b></span>
             <span>Rockets: <b id="ammo-rockets">0</b></span>
+            <span>MedKits: <b id="hud-medkits">0</b></span>
+            <span>ShieldCans: <b id="hud-shieldcans">0</b></span>
         </div>
     </div>
 
@@ -440,8 +440,8 @@
         <b>Controls:</b><br>
         Mouse: Aim 360° | WASD: Move<br>
         Space: Jump / Glider | Click: Fire<br>
-        E: Interact | Q: Wall | R: Reload<br>
-        1-7: Select Slot | <b>H: Use Med Kit | J: Use Shield</b>
+        E: Interact | R: Reload | <b>Q: Emote</b><br>
+        1-7: Select Slot | <b>H: Med Kit | J: Shield Can</b>
     </div>
 
     <div id="banner">BATTLE BUS — Press SPACEBAR to Jump Out!</div>
@@ -822,10 +822,10 @@
 
         const player = {
             x: -1700, y: -300, altitude: 100, angle: 0, speed: 5.2,
-            hp: 100, shield: 100, wood: 0, elims: 0, matchGold: 0, radius: 18,
+            hp: 100, shield: 100, elims: 0, matchGold: 0, radius: 18,
             inventory: [null, null, null, null, null, null, null], slot: 0,
             ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 },
-            medKits: 0, shieldCans: 0,
+            medKits: 1, shieldCans: 1,
             reloading: false,
             emoteTimer: 0,
             petX: -1700, petY: -300
@@ -858,7 +858,7 @@
             bus.x = -1700; bus.y = -300;
             player.x = bus.x; player.y = bus.y; player.altitude = 100;
             player.petX = bus.x - 30; player.petY = bus.y - 30;
-            player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0; player.matchGold = 0;
+            player.hp = 100; player.shield = 100; player.elims = 0; player.matchGold = 0;
             player.inventory = [null, null, null, null, null, null, null]; player.slot = 0;
             player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 };
             player.medKits = 1; player.shieldCans = 1;
@@ -901,7 +901,7 @@
                 });
             }
 
-            for (let i = 0; i < 55; i++) {
+            for (let i = 0; i < 50; i++) {
                 const wType = Math.floor(Math.random() * baseWeapons.length);
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
@@ -912,7 +912,7 @@
             }
 
             const ammoTypes = ["medium", "shells", "light", "heavy", "rockets"];
-            for (let i = 0; i < 60; i++) {
+            for (let i = 0; i < 50; i++) {
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
@@ -921,7 +921,7 @@
                 });
             }
 
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 20; i++) {
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
@@ -935,11 +935,13 @@
                 const by = (Math.random() - 0.5) * 2000;
                 bots.push({
                     x: bx, y: by, angle: Math.random() * Math.PI * 2,
-                    hp: 100, shield: 50, radius: 18,
-                    weapon: makeWeapon(0, 2), // Higher rarity weapon for increased difficulty
-                    cooldown: 75, // Faster firing rate
+                    hp: 140, // Increased bot health (hardcore)
+                    shield: 100, // Increased bot shield (hardcore)
+                    radius: 18,
+                    weapon: makeWeapon(0, 3), // Epic weapon tier
+                    cooldown: 55, // Much faster firing rate
                     wanderAngle: Math.random() * Math.PI * 2,
-                    wanderTimer: 100
+                    wanderTimer: 80
                 });
             }
             updateHUD();
@@ -974,12 +976,13 @@
             document.getElementById("hud-gold").innerText = saveData.gold;
             document.getElementById("shield").innerText = Math.max(0, Math.round(player.shield));
             document.getElementById("hp").innerText = Math.max(0, Math.round(player.hp));
-            document.getElementById("wood").innerText = player.wood;
             document.getElementById("ammo-medium").innerText = player.ammo.medium;
             document.getElementById("ammo-shells").innerText = player.ammo.shells;
             document.getElementById("ammo-light").innerText = player.ammo.light;
             document.getElementById("ammo-heavy").innerText = player.ammo.heavy;
             document.getElementById("ammo-rockets").innerText = player.ammo.rockets;
+            document.getElementById("hud-medkits").innerText = player.medKits;
+            document.getElementById("hud-shieldcans").innerText = player.shieldCans;
 
             for (let i = 0; i < 7; i++) {
                 const w = player.inventory[i];
@@ -1029,7 +1032,7 @@
 
             if (k === 'e' && gameState === 'PLAYING') interact();
             if (k === 'r' && gameState === 'PLAYING') reloadWeapon();
-            if (k === 'q' && gameState === 'PLAYING') buildWall();
+            if (k === 'q' && gameState === 'PLAYING') player.emoteTimer = 120;
             if (k === 'h' && gameState === 'PLAYING' && player.medKits > 0 && player.hp < 100) {
                 player.medKits--;
                 player.hp = Math.min(100, player.hp + 50);
@@ -1102,15 +1105,6 @@
             }, 1100);
         }
 
-        function buildWall() {
-            if (player.wood < 10) return;
-            player.wood -= 10;
-            const wx = player.x + Math.cos(player.angle) * 55;
-            const wy = player.y + Math.sin(player.angle) * 55;
-            addBuilding(wx, wy, 56, 56, "#92400e", "#f59e0b", 160);
-            updateHUD();
-        }
-
         function shootOrHarvest() {
             const w = player.inventory[player.slot];
             const now = Date.now();
@@ -1126,7 +1120,6 @@
                     const cy = ob.isRect ? ob.y + ob.h / 2 : ob.y;
                     if (Math.hypot(hx - cx, hy - cy) < (ob.w / 2 + 30)) {
                         ob.hp -= 35;
-                        player.wood += ob.isTree ? 25 : 15;
                         if (ob.hp <= 0) obstacles.splice(i, 1);
                         updateHUD();
                         break;
@@ -1321,9 +1314,9 @@
                 }
                 promptEl.style.display = showPrompt ? "block" : "none";
 
-                if (storm.radius > storm.targetRadius) storm.radius -= 0.15;
+                if (storm.radius > storm.targetRadius) storm.radius -= 0.18; // Faster storm shrinkage (hardcore)
                 if (Math.hypot(player.x - storm.x, player.y - storm.y) > storm.radius) {
-                    player.hp -= 0.08;
+                    player.hp -= 0.12; // Higher storm damage to player
                     updateHUD();
                 }
 
@@ -1379,9 +1372,8 @@
                     const bot = bots[i];
                     if (bot.hp <= 0) { bots.splice(i, 1); continue; }
 
-                    // Bots take storm damage if outside storm radius
                     if (Math.hypot(bot.x - storm.x, bot.y - storm.y) > storm.radius) {
-                        bot.hp -= 0.15;
+                        bot.hp -= 0.2;
                         if (bot.hp <= 0) {
                             bots.splice(i, 1);
                             player.elims++;
@@ -1396,42 +1388,42 @@
                     const distToStormCenter = Math.hypot(bot.x - storm.x, bot.y - storm.y);
                     if (distToStormCenter > storm.radius - 80) {
                         bot.angle = Math.atan2(storm.y - bot.y, storm.x - bot.x);
-                        const bx = Math.cos(bot.angle) * 2.2;
-                        const by = Math.sin(bot.angle) * 2.2;
+                        const bx = Math.cos(bot.angle) * 2.6;
+                        const by = Math.sin(bot.angle) * 2.6;
                         if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                         if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                     } else {
                         const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
-                        if (distToPlayer < 450) {
+                        if (distToPlayer < 550) { // Aggressive detection range
                             const trueAngle = Math.atan2(player.y - bot.y, player.x - bot.x);
-                            bot.angle = trueAngle + (Math.random() - 0.5) * 0.4; // Tighter aim (harder difficulty)
+                            bot.angle = trueAngle + (Math.random() - 0.5) * 0.2; // Deadlier aim
 
-                            if (distToPlayer > 150) {
-                                const bx = Math.cos(bot.angle) * 2.0;
-                                const by = Math.sin(bot.angle) * 2.0;
+                            if (distToPlayer > 130) {
+                                const bx = Math.cos(bot.angle) * 2.4; // Faster bot chase speed
+                                const by = Math.sin(bot.angle) * 2.4;
                                 if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                                 if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                             }
                             bot.cooldown--;
                             if (bot.cooldown <= 0) {
-                                bot.cooldown = 80;
+                                bot.cooldown = 60; // Rapid firing frequency
                                 bullets.push({
                                     x: bot.x + Math.cos(bot.angle) * 22,
                                     y: bot.y + Math.sin(bot.angle) * 22,
-                                    vx: Math.cos(bot.angle) * 14,
-                                    vy: Math.sin(bot.angle) * 14,
-                                    damage: 16, color: "#ef4444", fromPlayer: false, life: 45
+                                    vx: Math.cos(bot.angle) * 16,
+                                    vy: Math.sin(bot.angle) * 16,
+                                    damage: 22, color: "#ef4444", fromPlayer: false, life: 45
                                 });
                             }
                         } else {
                             bot.wanderTimer--;
                             if (bot.wanderTimer <= 0) {
                                 bot.wanderAngle = Math.random() * Math.PI * 2;
-                                bot.wanderTimer = 120;
+                                bot.wanderTimer = 90;
                             }
                             bot.angle = bot.wanderAngle;
-                            const bx = Math.cos(bot.angle) * 1.2;
-                            const by = Math.sin(bot.angle) * 1.2;
+                            const bx = Math.cos(bot.angle) * 1.5;
+                            const by = Math.sin(bot.angle) * 1.5;
                             if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                             if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                         }
@@ -1601,7 +1593,6 @@
                 ctx.restore();
             }
 
-,
             ctx.strokeStyle = "rgba(168, 85, 247, 0.85)";
             ctx.lineWidth = 10;
             ctx.beginPath();
