@@ -283,15 +283,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        .timer-badge {
-            font-size: 12px;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #f87171;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
         .shop-grid {
             width: 92%;
             max-width: 1200px;
@@ -379,7 +370,7 @@
 
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8; letter-spacing: 4px;">Season 1</span></h1>
-        <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">500</span></div>
+        <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">100</span></div>
         <p>Auto-Ammo • +20 Gold per Elim • All Bundles & Sets Available</p>
         <div class="btn-row">
             <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
@@ -403,7 +394,7 @@
             </div>
 
             <div style="display: flex; align-items: center; gap: 14px;">
-                <div class="gold-badge" style="margin: 0; font-size: 16px;">🪙 <span id="shop-gold">500</span></div>
+                <div class="gold-badge" style="margin: 0; font-size: 16px;">🪙 <span id="shop-gold">100</span></div>
                 <button class="action-btn" style="padding: 10px 20px; font-size: 14px;" onclick="closeShop()">MENU</button>
             </div>
         </div>
@@ -415,7 +406,6 @@
             <button class="tab-btn" onclick="filterShop('ROYALTY', this)">👑 Royalty</button>
             <button class="tab-btn" onclick="filterShop('FLASHBANG', this)">⚡ Flashbang</button>
             <button class="tab-btn" onclick="filterShop('SHOCKWAVE', this)">🌀 Shockwave</button>
-            <button class="tab-btn" onclick="filterShop('skin', this)">Skins</button>
         </div>
 
         <div id="shop-content-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
@@ -443,7 +433,7 @@
         <div class="stat-row">
             <div>Alive: <span id="alive-count">11</span></div>
             <div>Elims: <span id="elims">0</span></div>
-            <div class="gold-txt">🪙 <span id="hud-gold">500</span></div>
+            <div class="gold-txt">🪙 <span id="hud-gold">100</span></div>
             <div class="shield">Shield: <span id="shield">100</span></div>
             <div class="hp">HP: <span id="hp">100</span></div>
             <div class="wood">Wood: <span id="wood">0</span></div>
@@ -497,7 +487,7 @@
         };
 
         const DEFAULT_SAVE = {
-            gold: 500,
+            gold: 100,
             owned: [
                 "skin_default", "wrap_default", "trail_none",
                 "emote_default", "pet_none", "song_default",
