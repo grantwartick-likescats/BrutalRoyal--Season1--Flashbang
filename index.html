@@ -359,7 +359,7 @@
     <div id="menu-overlay" class="overlay-screen">
         <h1>Brutal Royale<br><span style="font-size: 24px; color: #38bdf8; letter-spacing: 4px;">Season 1</span></h1>
         <div class="gold-badge">🪙 Gold Balance: <span id="menu-gold">100</span></div>
-        <p>Auto-Ammo • +20 Gold per Elim • Bots Evade Storm</p>
+        <p>Higher Difficulty • Med Kits & Shield Cans • Bots Take Storm Damage</p>
         <div class="btn-row">
             <button class="action-btn" onclick="startGame()">PLAY BATTLE ROYALE</button>
             <button class="action-btn shop-btn" onclick="openShop()">ITEM SHOP & LOCKER</button>
@@ -440,7 +440,8 @@
         <b>Controls:</b><br>
         Mouse: Aim 360° | WASD: Move<br>
         Space: Jump / Glider | Click: Fire<br>
-        E: Interact | Q: Wall | R: Reload
+        E: Interact | Q: Wall | R: Reload<br>
+        1-7: Select Slot | <b>H: Use Med Kit | J: Use Shield</b>
     </div>
 
     <div id="banner">BATTLE BUS — Press SPACEBAR to Jump Out!</div>
@@ -824,6 +825,7 @@
             hp: 100, shield: 100, wood: 0, elims: 0, matchGold: 0, radius: 18,
             inventory: [null, null, null, null, null, null, null], slot: 0,
             ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 },
+            medKits: 0, shieldCans: 0,
             reloading: false,
             emoteTimer: 0,
             petX: -1700, petY: -300
@@ -859,6 +861,7 @@
             player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0; player.matchGold = 0;
             player.inventory = [null, null, null, null, null, null, null]; player.slot = 0;
             player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 };
+            player.medKits = 1; player.shieldCans = 1;
             player.reloading = false;
             player.emoteTimer = 0;
             storm.radius = 2400;
@@ -898,23 +901,32 @@
                 });
             }
 
-            for (let i = 0; i < 65; i++) {
+            for (let i = 0; i < 55; i++) {
                 const wType = Math.floor(Math.random() * baseWeapons.length);
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
                     weapon: makeWeapon(wType, Math.floor(Math.random() * 3)),
-                    ammoType: null
+                    healType: null, ammoType: null
                 });
             }
 
             const ammoTypes = ["medium", "shells", "light", "heavy", "rockets"];
-            for (let i = 0; i < 80; i++) {
+            for (let i = 0; i < 60; i++) {
                 lootItems.push({
                     x: (Math.random() - 0.5) * 3100,
                     y: (Math.random() - 0.5) * 3100,
-                    weapon: null,
+                    weapon: null, healType: null,
                     ammoType: ammoTypes[Math.floor(Math.random() * ammoTypes.length)]
+                });
+            }
+
+            for (let i = 0; i < 25; i++) {
+                lootItems.push({
+                    x: (Math.random() - 0.5) * 3100,
+                    y: (Math.random() - 0.5) * 3100,
+                    weapon: null, ammoType: null,
+                    healType: Math.random() < 0.5 ? 'medKit' : 'shieldCan'
                 });
             }
 
@@ -923,9 +935,9 @@
                 const by = (Math.random() - 0.5) * 2000;
                 bots.push({
                     x: bx, y: by, angle: Math.random() * Math.PI * 2,
-                    hp: 100, shield: 0, radius: 18,
-                    weapon: makeWeapon(0, 0),
-                    cooldown: 95,
+                    hp: 100, shield: 50, radius: 18,
+                    weapon: makeWeapon(0, 2), // Higher rarity weapon for increased difficulty
+                    cooldown: 75, // Faster firing rate
                     wanderAngle: Math.random() * Math.PI * 2,
                     wanderTimer: 100
                 });
@@ -1018,6 +1030,18 @@
             if (k === 'e' && gameState === 'PLAYING') interact();
             if (k === 'r' && gameState === 'PLAYING') reloadWeapon();
             if (k === 'q' && gameState === 'PLAYING') buildWall();
+            if (k === 'h' && gameState === 'PLAYING' && player.medKits > 0 && player.hp < 100) {
+                player.medKits--;
+                player.hp = Math.min(100, player.hp + 50);
+                floatingTexts.push({ x: player.x, y: player.y - 25, text: "+50 HP 💉", color: "#4ade80", alpha: 1 });
+                updateHUD();
+            }
+            if (k === 'j' && gameState === 'PLAYING' && player.shieldCans > 0 && player.shield < 100) {
+                player.shieldCans--;
+                player.shield = Math.min(100, player.shield + 50);
+                floatingTexts.push({ x: player.x, y: player.y - 25, text: "+50 SHIELD 🛡️", color: "#38bdf8", alpha: 1 });
+                updateHUD();
+            }
             if (k === 'b' && gameState === 'PLAYING') player.emoteTimer = 120;
             if (k === 'm') {
                 musicEnabled = !musicEnabled;
@@ -1037,8 +1061,9 @@
                     c.opened = true;
                     const wType = Math.floor(Math.random() * baseWeapons.length);
                     const gun = makeWeapon(wType, 2 + Math.floor(Math.random() * 3));
-                    lootItems.push({ x: c.x + 25, y: c.y + 15, weapon: gun, ammoType: null });
-                    lootItems.push({ x: c.x - 25, y: c.y + 15, weapon: null, ammoType: gun.ammo });
+                    lootItems.push({ x: c.x + 25, y: c.y + 15, weapon: gun, healType: null, ammoType: null });
+                    lootItems.push({ x: c.x - 25, y: c.y + 15, weapon: null, healType: null, ammoType: gun.ammo });
+                    lootItems.push({ x: c.x, y: c.y - 25, weapon: null, healType: Math.random() < 0.5 ? 'medKit' : 'shieldCan', ammoType: null });
                     player.shield = Math.min(100, player.shield + 25);
                     updateHUD();
                     return;
@@ -1053,7 +1078,7 @@
                     const old = player.inventory[emptySlot];
                     player.inventory[emptySlot] = item.weapon;
                     player.slot = emptySlot;
-                    if (old) lootItems.push({ x: item.x, y: item.y, weapon: old, ammoType: null });
+                    if (old) lootItems.push({ x: item.x, y: item.y, weapon: old, healType: null, ammoType: null });
                     lootItems.splice(i, 1);
                     updateHUD();
                     return;
@@ -1256,6 +1281,16 @@
                         floatingTexts.push({ x: player.x, y: player.y - 25, text: `+30 ${item.ammoType.toUpperCase()}`, color: "#38bdf8", alpha: 1 });
                         lootItems.splice(i, 1);
                         updateHUD();
+                    } else if (item.healType && Math.hypot(player.x - item.x, player.y - item.y) < 42) {
+                        if (item.healType === 'medKit') {
+                            player.medKits++;
+                            floatingTexts.push({ x: player.x, y: player.y - 25, text: "+1 Med Kit [H]", color: "#4ade80", alpha: 1 });
+                        } else {
+                            player.shieldCans++;
+                            floatingTexts.push({ x: player.x, y: player.y - 25, text: "+1 Shield Can [J]", color: "#38bdf8", alpha: 1 });
+                        }
+                        lootItems.splice(i, 1);
+                        updateHUD();
                     }
                 }
 
@@ -1277,6 +1312,9 @@
                     for (const item of lootItems) {
                         if (item.weapon && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
                             promptEl.innerText = `[E] Pick Up ${item.weapon.rarityName} ${item.weapon.name}`;
+                            showPrompt = true; break;
+                        } else if (item.healType && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
+                            promptEl.innerText = `[E] Pick Up ${item.healType === 'medKit' ? 'Med Kit' : 'Shield Can'}`;
                             showPrompt = true; break;
                         }
                     }
@@ -1305,7 +1343,7 @@
                                 bot.hp -= b.damage;
 
                                 if (bot.hp <= 0) {
-                                    lootItems.push({ x: bot.x, y: bot.y, weapon: bot.weapon, ammoType: null });
+                                    lootItems.push({ x: bot.x, y: bot.y, weapon: bot.weapon, healType: null, ammoType: null });
                                     bots.splice(j, 1);
                                     player.elims++;
                                     player.matchGold += 20;
@@ -1341,38 +1379,48 @@
                     const bot = bots[i];
                     if (bot.hp <= 0) { bots.splice(i, 1); continue; }
 
+                    // Bots take storm damage if outside storm radius
+                    if (Math.hypot(bot.x - storm.x, bot.y - storm.y) > storm.radius) {
+                        bot.hp -= 0.15;
+                        if (bot.hp <= 0) {
+                            bots.splice(i, 1);
+                            player.elims++;
+                            player.matchGold += 20;
+                            saveData.gold += 20;
+                            persistSave();
+                            updateHUD();
+                            continue;
+                        }
+                    }
+
                     const distToStormCenter = Math.hypot(bot.x - storm.x, bot.y - storm.y);
-                    
-                    // Storm Evading AI Logic
                     if (distToStormCenter > storm.radius - 80) {
-                        // Bot is getting too close to the storm or outside it! Head directly to center.
                         bot.angle = Math.atan2(storm.y - bot.y, storm.x - bot.x);
                         const bx = Math.cos(bot.angle) * 2.2;
                         const by = Math.sin(bot.angle) * 2.2;
                         if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                         if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                     } else {
-                        // Normal combat/wander logic inside safe zone
                         const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
-                        if (distToPlayer < 400) {
+                        if (distToPlayer < 450) {
                             const trueAngle = Math.atan2(player.y - bot.y, player.x - bot.x);
-                            bot.angle = trueAngle + (Math.random() - 0.5) * 0.8;
+                            bot.angle = trueAngle + (Math.random() - 0.5) * 0.4; // Tighter aim (harder difficulty)
 
-                            if (distToPlayer > 160) {
-                                const bx = Math.cos(bot.angle) * 1.8;
-                                const by = Math.sin(bot.angle) * 1.8;
+                            if (distToPlayer > 150) {
+                                const bx = Math.cos(bot.angle) * 2.0;
+                                const by = Math.sin(bot.angle) * 2.0;
                                 if (!collidesWithObstacle(bot.x + bx, bot.y, bot.radius)) bot.x += bx;
                                 if (!collidesWithObstacle(bot.x, bot.y + by, bot.radius)) bot.y += by;
                             }
                             bot.cooldown--;
                             if (bot.cooldown <= 0) {
-                                bot.cooldown = 110;
+                                bot.cooldown = 80;
                                 bullets.push({
                                     x: bot.x + Math.cos(bot.angle) * 22,
                                     y: bot.y + Math.sin(bot.angle) * 22,
-                                    vx: Math.cos(bot.angle) * 12,
-                                    vy: Math.sin(bot.angle) * 12,
-                                    damage: 10, color: "#fb923c", fromPlayer: false, life: 40
+                                    vx: Math.cos(bot.angle) * 14,
+                                    vy: Math.sin(bot.angle) * 14,
+                                    damage: 16, color: "#ef4444", fromPlayer: false, life: 45
                                 });
                             }
                         } else {
@@ -1465,6 +1513,10 @@
                     ctx.fillStyle = item.weapon.rarityHex;
                     ctx.beginPath(); ctx.arc(item.x, item.y, 11, 0, Math.PI * 2); ctx.fill();
                     ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+                } else if (item.healType) {
+                    ctx.fillStyle = item.healType === 'medKit' ? "#22c55e" : "#0ea5e9";
+                    ctx.fillRect(item.x - 9, item.y - 9, 18, 18);
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.strokeRect(item.x - 9, item.y - 9, 18, 18);
                 } else {
                     ctx.fillStyle = "#38bdf8";
                     ctx.fillRect(item.x - 8, item.y - 8, 16, 16);
@@ -1549,6 +1601,7 @@
                 ctx.restore();
             }
 
+,
             ctx.strokeStyle = "rgba(168, 85, 247, 0.85)";
             ctx.lineWidth = 10;
             ctx.beginPath();
