@@ -497,7 +497,7 @@
         };
 
         const DEFAULT_SAVE = {
-            gold: 100, // Starting gold is now 100
+            gold: 100,
             owned: [
                 "skin_default", "wrap_default", "trail_none",
                 "emote_default", "pet_none", "song_default",
@@ -525,7 +525,6 @@
         }
 
         const SHOP_CATALOG = [
-            // Default Owned
             { id: "skin_default", name: "Recruit Striker", type: "skin", rarity: "Common", price: 0, color: "#2563eb", trim: "#ffffff", icon: "🧑" },
             { id: "wrap_default", name: "Standard Issue", type: "wrap", rarity: "Common", price: 0, color: null, icon: "🔫" },
             { id: "trail_none", name: "No Contrail", type: "trail", rarity: "Common", price: 0, color: null, icon: "💨" },
@@ -535,7 +534,6 @@
             { id: "glider_default", name: "OG Cruiser", type: "glider", rarity: "Common", price: 0, primary: "#0284c7", secondary: "#facc15", icon: "🪂" },
             { id: "pickaxe_default", name: "Default Pickaxe", type: "pickaxe", rarity: "Common", price: 0, color: "#94a3b8", icon: "⛏️" },
 
-            // BUNDLES (Includes multiple items at a discount)
             { 
                 id: "bundle_flashbang", name: "Flashbang Mega Bundle", type: "bundle", series: "FLASHBANG", rarity: "Flashbang Series", price: 2200, 
                 contains: ["skin_flashbang", "wrap_flashbang", "trail_flashbang", "emote_flashbang"], icon: "⚡🎁" 
@@ -545,20 +543,17 @@
                 contains: ["skin_shockwave", "wrap_shockwave", "trail_shockwave", "emote_shockwave", "pickaxe_shockwave"], icon: "🌀🎁" 
             },
 
-            // FLASHBANG SET
             { id: "skin_flashbang", name: "Flashbang Operative", type: "skin", series: "FLASHBANG", rarity: "Flashbang Series", price: 1200, color: "#ffffff", trim: "#06b6d4", glow: "#38bdf8", icon: "⚡" },
             { id: "wrap_flashbang", name: "Blinding Nova Wrap", type: "wrap", series: "FLASHBANG", rarity: "Flashbang Series", price: 500, color: "#e0f2fe", icon: "✨" },
             { id: "trail_flashbang", name: "Hypernova Flash Trail", type: "trail", series: "FLASHBANG", rarity: "Flashbang Series", price: 600, color: "#ffffff", secondary: "#38bdf8", icon: "☄️" },
             { id: "emote_flashbang", name: "Flashbang Flex", type: "emote", series: "FLASHBANG", rarity: "Flashbang Series", price: 400, text: "⚡ FLASHED! ⚡", color: "#38bdf8", icon: "💥" },
 
-            // SHOCKWAVE SET
             { id: "skin_shockwave", name: "Shockwave Striker", type: "skin", series: "SHOCKWAVE", rarity: "Epic", price: 1200, color: "#0284c7", trim: "#38bdf8", glow: "#0284c7", icon: "🌀" },
             { id: "wrap_shockwave", name: "Sonic Pulse Wrap", type: "wrap", series: "SHOCKWAVE", rarity: "Rare", price: 500, color: "#38bdf8", icon: "🔊" },
             { id: "trail_shockwave", name: "Shockwave Rings", type: "trail", series: "SHOCKWAVE", rarity: "Rare", price: 600, color: "#38bdf8", secondary: "#ffffff", icon: "💠" },
             { id: "emote_shockwave", name: "Sonic Wave Dance", type: "emote", series: "SHOCKWAVE", rarity: "Epic", price: 500, text: "🌀 SHOCKWAVE! 🌀", color: "#38bdf8", icon: "🎛️" },
             { id: "pickaxe_shockwave", name: "Pulse Hammer", type: "pickaxe", series: "SHOCKWAVE", rarity: "Rare", price: 800, color: "#0284c7", icon: "🔨" },
 
-            // DAILY ROTATING SECTION
             { id: "skin_aura", name: "Golden Aura", type: "skin", section: "daily", rarity: "Uncommon", price: 800, color: "#facc15", trim: "#78350f", icon: "🌟" },
             { id: "skin_brawler", name: "Crimson Brawler", type: "skin", section: "daily", rarity: "Rare", price: 1200, color: "#e11d48", trim: "#1e293b", icon: "🥷" },
             { id: "wrap_magma", name: "Magma Core", type: "wrap", section: "daily", rarity: "Rare", price: 500, color: "#f97316", icon: "🔥" },
@@ -616,7 +611,6 @@
             });
 
             if (currentShopFilter === 'ALL') {
-                // Render Bundles first
                 const bundleItems = items.filter(i => i.type === 'bundle');
                 if (bundleItems.length > 0) {
                     const titleRow = document.createElement("div");
@@ -630,7 +624,6 @@
                     container.appendChild(grid);
                 }
 
-                // Render Flashbang Set
                 const flashItems = items.filter(i => i.series === 'FLASHBANG' && i.type !== 'bundle');
                 if (flashItems.length > 0) {
                     const titleRow = document.createElement("div");
@@ -644,7 +637,6 @@
                     container.appendChild(grid);
                 }
 
-                // Render Shockwave Set
                 const shockItems = items.filter(i => i.series === 'SHOCKWAVE' && i.type !== 'bundle');
                 if (shockItems.length > 0) {
                     const titleRow = document.createElement("div");
@@ -658,7 +650,6 @@
                     container.appendChild(grid);
                 }
 
-                // Render Daily Section
                 const dailyItems = items.filter(i => i.section === 'daily');
                 if (dailyItems.length > 0) {
                     const titleRow = document.createElement("div");
@@ -697,7 +688,11 @@
             if (isEquipped) {
                 btnHtml = `<button class="buy-btn equipped">✔ EQUIPPED</button>`;
             } else if (isOwned) {
-                btnHtml = `<button class="buy-btn equipped">OWNED</button>`;
+                if (isBundle) {
+                    btnHtml = `<button class="buy-btn equipped">OWNED</button>`;
+                } else {
+                    btnHtml = `<button class="buy-btn equip" onclick="equipItem('${item.id}')">EQUIP</button>`;
+                }
             } else if (isBundle) {
                 btnHtml = `<button class="buy-btn bundle" onclick="buyBundle('${item.id}')">🪙 ${item.price.toLocaleString()}</button>`;
             } else {
@@ -731,6 +726,14 @@
             }
         }
 
+        function equipItem(itemId) {
+            const item = SHOP_CATALOG.find(i => i.id === itemId);
+            if (!item || !saveData.owned.includes(itemId)) return;
+            saveData.equipped[item.type] = itemId;
+            persistSave();
+            renderShop();
+        }
+
         function buyBundle(bundleId) {
             const bundle = SHOP_CATALOG.find(i => i.id === bundleId);
             if (!bundle || !bundle.contains) return;
@@ -753,420 +756,6 @@
         }
 
         function redeemCode() {
-            const input = document.getElementById("code-input");
-            const msg = document.getElementById("code-msg");
-            const code = input.value.trim().toUpperCase();
-            input.value = "";
-
-            if (!code) return;
-            if (saveData.redeemedCodes.includes(code)) {
-                msg.style.color = "#facc15";
-                msg.innerText = "Already redeemed!";
-                return;
-            }
-            if (activeRandomCodes[code]) {
-                const reward = activeRandomCodes[code];
-                saveData.gold += reward;
-                saveData.redeemedCodes.push(code);
-                persistSave();
-                msg.style.color = "#4ade80";
-                msg.innerText = `+${reward} Gold!`;
-            } else {
-                msg.style.color = "#ef4444";
-                msg.innerText = "Invalid code!";
-            }
-        }
-
-        let audioCtx = null;
-        let musicInterval = null;
-        let musicEnabled = true;
-
-        function startEquippedMusic() {
-            stopMusic();
-            if (!musicEnabled) return;
-            const song = getEquippedItem("song");
-            if (!song || !song.notes) return;
-
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let step = 0;
-            musicInterval = setInterval(() => {
-                if (gameState !== 'PLAYING' && gameState !== 'BUS' && gameState !== 'SKYDIVING' && gameState !== 'GLIDING') return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(song.notes[step % song.notes.length], audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.23);
-                step++;
-            }, song.tempo || 400);
-        }
-
-        function stopMusic() {
-            if (musicInterval) {
-                clearInterval(musicInterval);
-                musicInterval = null;
-            }
-        }
-
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
-        const MAP_SIZE = 3600;
-        let gameState = 'MENU';
-
-        const rarities = [
-            { name: "Common", hex: "#94a3b8", mult: 1.0 },
-            { name: "Uncommon", hex: "#4ade80", mult: 1.12 },
-            { name: "Rare", hex: "#38bdf8", mult: 1.25 },
-            { name: "Epic", hex: "#c084fc", mult: 1.4 },
-            { name: "Legendary", hex: "#fb923c", mult: 1.55 },
-            { name: "Exotic", hex: "#06b6d4", mult: 2.0 }
-        ];
-
-        const baseWeapons = [
-            { id: 0, name: "Assault Rifle", ammo: "medium", mag: 30, dmg: 32, rate: 140, speed: 22, pellets: 1, spread: 0.03 },
-            { id: 1, name: "Pump Shotgun", ammo: "shells", mag: 5, dmg: 26, rate: 650, speed: 19, pellets: 6, spread: 0.16 },
-            { id: 2, name: "Tactical SMG", ammo: "light", mag: 40, dmg: 20, rate: 75, speed: 21, pellets: 1, spread: 0.05 },
-            { id: 3, name: "Bolt Sniper", ammo: "heavy", mag: 1, dmg: 135, rate: 950, speed: 34, pellets: 1, spread: 0.0 },
-            { id: 4, name: "Heavy Shotgun", ammo: "shells", mag: 4, dmg: 85, rate: 550, speed: 21, pellets: 1, spread: 0.03 },
-            { id: 5, name: "Suppress Pistol", ammo: "light", mag: 16, dmg: 28, rate: 130, speed: 21, pellets: 1, spread: 0.03 },
-            { id: 6, name: "Rocket Launcher", ammo: "rockets", mag: 1, dmg: 140, rate: 1200, speed: 15, pellets: 1, spread: 0.0, explosive: true }
-        ];
-
-        function makeWeapon(typeIdx, rarityIdx) {
-            const b = baseWeapons[typeIdx];
-            const r = rarities[rarityIdx];
-            return { ...b, rarityName: r.name, rarityHex: r.hex, damage: Math.round(b.dmg * r.mult), currentMag: b.mag };
-        }
-
-        const pois = [
-            { name: "Realities Reign", x: -950, y: -950, ground: "#2e1065", wall: "#581c87", accent: "#ec4899" },
-            { name: "Cursed Cavern", x: 950, y: -950, ground: "#0f172a", wall: "#1e293b", accent: "#38bdf8" },
-            { name: "Stone Sanctum", x: -950, y: 950, ground: "#292524", wall: "#57534e", accent: "#2dd4bf" },
-            { name: "Busy Bay", x: 950, y: 950, ground: "#451a03", wall: "#92400e", accent: "#facc15" }
-        ];
-
-        const player = {
-            x: -1700, y: -300, altitude: 100, angle: 0, speed: 5.2,
-            hp: 100, shield: 100, wood: 0, elims: 0, matchGold: 0, radius: 18,
-            inventory: [null, null, null, null, null, null, null], slot: 0,
-            ammo: { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 },
-            reloading: false,
-            emoteTimer: 0,
-            petX: -1700, petY: -300
-        };
-
-        const bus = { x: -1700, y: -300, vx: 6.5, vy: 1.2 };
-        const storm = { x: 0, y: 0, radius: 2400, targetRadius: 300 };
-
-        let obstacles = [];
-        let chests = [];
-        let lootItems = [];
-        let bots = [];
-        let bullets = [];
-        let trailParticles = [];
-        let floatingTexts = [];
-
-        const keys = {};
-        const mouse = { x: canvas.width / 2, y: canvas.height / 2, down: false };
-        let lastShot = 0;
-
-        function initWorld() {
-            obstacles = [];
-            chests = [];
-            lootItems = [];
-            bots = [];
-            bullets = [];
-            trailParticles = [];
-            floatingTexts = [];
-
-            bus.x = -1700; bus.y = -300;
-            player.x = bus.x; player.y = bus.y; player.altitude = 100;
-            player.petX = bus.x - 30; player.petY = bus.y - 30;
-            player.hp = 100; player.shield = 100; player.wood = 0; player.elims = 0; player.matchGold = 0;
-            player.inventory = [null, null, null, null, null, null, null]; player.slot = 0;
-            player.ammo = { medium: 0, shells: 0, light: 0, heavy: 0, rockets: 0 };
-            player.reloading = false;
-            player.emoteTimer = 0;
-            storm.radius = 2400;
-
-            pois.forEach(p => {
-                addBuilding(p.x - 160, p.y - 160, 130, 90, p.wall, p.accent);
-                addBuilding(p.x + 160, p.y - 160, 130, 90, p.wall, p.accent);
-                addBuilding(p.x - 160, p.y + 160, 130, 90, p.wall, p.accent);
-                addBuilding(p.x + 160, p.y + 160, 130, 90, p.wall, p.accent);
-                addBuilding(p.x, p.y, 110, 110, p.wall, p.accent, 400);
-
-                chests.push({ x: p.x - 90, y: p.y - 90, opened: false });
-                chests.push({ x: p.x + 90, y: p.y - 90, opened: false });
-                chests.push({ x: p.x - 90, y: p.y + 90, opened: false });
-                chests.push({ x: p.x + 90, y: p.y + 90, opened: false });
-            });
-
-            for (let i = 0; i < 20; i++) {
-                chests.push({
-                    x: (Math.random() - 0.5) * 3000,
-                    y: (Math.random() - 0.5) * 3000,
-                    opened: false
-                });
-            }
-
-            for (let i = 0; i < 200; i++) {
-                const tx = (Math.random() - 0.5) * 3300;
-                const ty = (Math.random() - 0.5) * 3300;
-                let inPoi = false;
-                for (const p of pois) { if (Math.hypot(tx - p.x, ty - p.y) < 320) { inPoi = true; break; } }
-                if (inPoi) continue;
-
-                obstacles.push({
-                    x: tx, y: ty, w: 46, h: 46,
-                    color: "#15803d", accent: "#14532d",
-                    hp: 100, isTree: true
-                });
-            }
-
-            for (let i = 0; i < 65; i++) {
-                const wType = Math.floor(Math.random() * baseWeapons.length);
-                lootItems.push({
-                    x: (Math.random() - 0.5) * 3100,
-                    y: (Math.random() - 0.5) * 3100,
-                    weapon: makeWeapon(wType, Math.floor(Math.random() * 3)),
-                    ammoType: null
-                });
-            }
-
-            const ammoTypes = ["medium", "shells", "light", "heavy", "rockets"];
-            for (let i = 0; i < 80; i++) {
-                lootItems.push({
-                    x: (Math.random() - 0.5) * 3100,
-                    y: (Math.random() - 0.5) * 3100,
-                    weapon: null,
-                    ammoType: ammoTypes[Math.floor(Math.random() * ammoTypes.length)]
-                });
-            }
-
-            for (let i = 0; i < 12; i++) {
-                const bx = (Math.random() - 0.5) * 3000;
-                const by = (Math.random() - 0.5) * 3000;
-                bots.push({
-                    x: bx, y: by, angle: Math.random() * Math.PI * 2,
-                    hp: 100, shield: 0, radius: 18,
-                    weapon: makeWeapon(0, 0),
-                    cooldown: 95,
-                    wanderAngle: Math.random() * Math.PI * 2,
-                    wanderTimer: 100
-                });
-            }
-            updateHUD();
-        }
-
-        function addBuilding(cx, cy, w, h, color, accent, hp = 220) {
-            obstacles.push({
-                x: cx - w / 2, y: cy - h / 2, w, h,
-                color, accent, hp, isTree: false, isRect: true
-            });
-        }
-
-        function startGame() {
-            document.getElementById("menu-overlay").style.display = "none";
-            document.getElementById("death-screen").style.display = "none";
-            document.getElementById("victory-screen").style.display = "none";
-            document.getElementById("shop-screen").style.display = "none";
-            document.getElementById("hud").style.display = "flex";
-            document.getElementById("hotbar").style.display = "flex";
-            document.getElementById("banner").style.display = "block";
-            document.getElementById("banner").innerText = "BATTLE BUS — Press SPACEBAR to Jump Out!";
-            document.getElementById("controls").style.display = "block";
-
-            initWorld();
-            startEquippedMusic();
-            gameState = 'BUS';
-        }
-
-        function updateHUD() {
-            document.getElementById("alive-count").innerText = bots.length + (player.hp > 0 ? 1 : 0);
-            document.getElementById("elims").innerText = player.elims;
-            document.getElementById("hud-gold").innerText = saveData.gold;
-            document.getElementById("shield").innerText = Math.max(0, Math.round(player.shield));
-            document.getElementById("hp").innerText = Math.max(0, Math.round(player.hp));
-            document.getElementById("wood").innerText = player.wood;
-            document.getElementById("ammo-medium").innerText = player.ammo.medium;
-            document.getElementById("ammo-shells").innerText = player.ammo.shells;
-            document.getElementById("ammo-light").innerText = player.ammo.light;
-            document.getElementById("ammo-heavy").innerText = player.ammo.heavy;
-            document.getElementById("ammo-rockets").innerText = player.ammo.rockets;
-
-            for (let i = 0; i < 7; i++) {
-                const w = player.inventory[i];
-                const el = document.getElementById(`slot-${i}`);
-                if (w) {
-                    el.innerHTML = `[${i + 1}] ${w.name}<br><small>${player.reloading && i === player.slot ? "Reloading..." : w.currentMag + "/" + w.mag}</small>`;
-                    el.style.borderColor = i === player.slot ? "#facc15" : w.rarityHex;
-                } else {
-                    el.innerHTML = `[${i + 1}] Empty`;
-                    el.style.borderColor = i === player.slot ? "#facc15" : "#334155";
-                }
-                el.classList.toggle("active", i === player.slot);
-            }
-        }
-
-        window.addEventListener("mousemove", e => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-        window.addEventListener("mousedown", () => { mouse.down = true; });
-        window.addEventListener("mouseup", () => { mouse.down = false; });
-
-        window.addEventListener("keydown", e => {
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
-            const k = e.key.toLowerCase();
-            keys[k] = true; keys[e.code] = true;
-
-            if (k >= '1' && k <= '7') {
-                player.slot = parseInt(k) - 1;
-                player.reloading = false;
-                updateHUD();
-            }
-
-            if (e.code === "Space") {
-                const banner = document.getElementById("banner");
-                if (gameState === 'BUS') {
-                    gameState = 'SKYDIVING';
-                    banner.innerText = "SKYDIVING — Press SPACEBAR to Open Glider!";
-                } else if (gameState === 'SKYDIVING') {
-                    gameState = 'GLIDING';
-                    banner.innerText = "GLIDING — Steering to Landing Zone!";
-                } else if (gameState === 'GLIDING') {
-                    gameState = 'SKYDIVING';
-                    banner.innerText = "SKYDIVING — Press SPACEBAR to Open Glider!";
-                }
-            }
-
-            if (k === 'e' && gameState === 'PLAYING') interact();
-            if (k === 'r' && gameState === 'PLAYING') reloadWeapon();
-            if (k === 'q' && gameState === 'PLAYING') buildWall();
-            if (k === 'b' && gameState === 'PLAYING') player.emoteTimer = 120;
-            if (k === 'm') {
-                musicEnabled = !musicEnabled;
-                if (musicEnabled) startEquippedMusic();
-                else stopMusic();
-            }
-        });
-
-        window.addEventListener("keyup", e => {
-            keys[e.key.toLowerCase()] = false;
-            keys[e.code] = false;
-        });
-
-        function interact() {
-            for (const c of chests) {
-                if (!c.opened && Math.hypot(player.x - c.x, player.y - c.y) < 65) {
-                    c.opened = true;
-                    const wType = Math.floor(Math.random() * baseWeapons.length);
-                    const gun = makeWeapon(wType, 2 + Math.floor(Math.random() * 3));
-                    lootItems.push({ x: c.x + 25, y: c.y + 15, weapon: gun, ammoType: null });
-                    lootItems.push({ x: c.x - 25, y: c.y + 15, weapon: null, ammoType: gun.ammo });
-                    player.shield = Math.min(100, player.shield + 25);
-                    updateHUD();
-                    return;
-                }
-            }
-
-            for (let i = lootItems.length - 1; i >= 0; i--) {
-                const item = lootItems[i];
-                if (item.weapon && Math.hypot(player.x - item.x, player.y - item.y) < 55) {
-                    let emptySlot = player.inventory.findIndex(s => s === null);
-                    if (emptySlot === -1) emptySlot = player.slot;
-                    const old = player.inventory[emptySlot];
-                    player.inventory[emptySlot] = item.weapon;
-                    player.slot = emptySlot;
-                    if (old) lootItems.push({ x: item.x, y: item.y, weapon: old, ammoType: null });
-                    lootItems.splice(i, 1);
-                    updateHUD();
-                    return;
-                }
-            }
-        }
-
-        function reloadWeapon() {
-            const w = player.inventory[player.slot];
-            if (!w || player.reloading || w.currentMag >= w.mag || player.ammo[w.ammo] <= 0) return;
-            player.reloading = true;
-            updateHUD();
-            setTimeout(() => {
-                if (!player.reloading) return;
-                const need = w.mag - w.currentMag;
-                const take = Math.min(need, player.ammo[w.ammo]);
-                w.currentMag += take;
-                player.ammo[w.ammo] -= take;
-                player.reloading = false;
-                updateHUD();
-            }, 1100);
-        }
-
-        function buildWall() {
-            if (player.wood < 10) return;
-            player.wood -= 10;
-            const wx = player.x + Math.cos(player.angle) * 55;
-            const wy = player.y + Math.sin(player.angle) * 55;
-            addBuilding(wx, wy, 56, 56, "#92400e", "#f59e0b", 160);
-            updateHUD();
-        }
-
-        function shootOrHarvest() {
-            const w = player.inventory[player.slot];
-            const now = Date.now();
-
-            if (!w) {
-                if (now - lastShot < 320) return;
-                lastShot = now;
-                const hx = player.x + Math.cos(player.angle) * 45;
-                const hy = player.y + Math.sin(player.angle) * 45;
-                for (let i = obstacles.length - 1; i >= 0; i--) {
-                    const ob = obstacles[i];
-                    const cx = ob.isRect ? ob.x + ob.w / 2 : ob.x;
-                    const cy = ob.isRect ? ob.y + ob.h / 2 : ob.y;
-                    if (Math.hypot(hx - cx, hy - cy) < (ob.w / 2 + 30)) {
-                        ob.hp -= 35;
-                        player.wood += ob.isTree ? 25 : 15;
-                        if (ob.hp <= 0) obstacles.splice(i, 1);
-                        updateHUD();
-                        break;
-                    }
-                }
-                return;
-            }
-
-            if (w.currentMag <= 0) {
-                if (!player.reloading && player.ammo[w.ammo] > 0) reloadWeapon();
-                return;
-            }
-
-            if (player.reloading || now - lastShot < w.rate) return;
-            lastShot = now;
-            w.currentMag--;
-            updateHUD();
-
-            if (w.currentMag <= 0 && player.ammo[w.ammo] > 0) reloadWeapon();
-
-            const equippedWrap = getEquippedItem("wrap");
-            const bulletColor = equippedWrap && equippedWrap.color ? equippedWrap.color : w.rarityHex;
-
-            for (let p = 0; p < w.pellets; p++) {
-                const spreadAngle = player.angle + (Math.random() - 0.5) * w.spread;
-                bullets.push({
-function redeemCode() {
             const input = document.getElementById("code-input");
             const msg = document.getElementById("code-msg");
             const code = input.value.trim().toUpperCase();
